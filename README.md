@@ -320,6 +320,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <p>Made with ❤️ by the MindMate Team</p>
-  <p>Empowering youth mental health, one connection at a time.</p>
-</div>
+  <p>Made with ❤️ by Shalin Shah
