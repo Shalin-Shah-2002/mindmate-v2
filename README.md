@@ -307,7 +307,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support & Contact
 
-- **Email**: support@mindmate.app
+- **Email**: 2002shalin@gmail.com
 - **GitHub Issues**: [Report bugs or request features](https://github.com/Shalin-Shah-2002/mindmate-v2/issues)
 - **Documentation**: [View full documentation](https://docs.mindmate.app)
 
