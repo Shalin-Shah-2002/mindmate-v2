@@ -1,0 +1,79 @@
+MindMate Project Description
+
+Project Name: MindMate
+
+Overview:
+MindMate is a Flutter-based mobile application designed to provide mental health support for youth. It combines AI therapy, mood tracking, community support, SOS emergency assistance, guided meditation, resource library, and social networking in one platform. The app uses Firebase for authentication, database, storage, and notifications, and GetX for state management, ensuring smooth and reactive user experience.
+
+Key Features:
+
+1. Authentication & User Management
+
+* Firebase Authentication (Email/Password, Google Sign-in)
+* User onboarding with mood and interest preferences
+* Profile setup with avatar, bio, and personal information
+
+2. AI Therapist Chatbot
+
+* AI-powered chat (using Gemini/OpenAI API)
+* Context-aware responses focusing on mental health
+* Conversation history for reflection
+* Personalized self-care tips based on mood logs
+
+3. Mood Tracking
+
+* Daily mood logging via emoji/slider
+* Optional text journal entries
+* Graphical insights on mood trends (weekly/monthly)
+
+4. SOS Emergency Support
+
+* Add, edit, and store emergency contacts
+* One-click SOS button to send location-based messages/calls
+* Preloaded local and regional helpline numbers
+
+5. Community & Peer Support
+
+* Public and anonymous posts
+* Likes, comments, replies, and shares
+* Groups with thematic discussions (e.g., Anxiety, Exam Stress)
+* Reporting and blocking for safety
+
+6. User Profiles & Social Features
+
+* Profile page with posts, followers/following
+* Follow/unfollow users
+* Profile privacy settings
+
+7. Notifications
+
+* Push notifications for likes, comments, follows, mood reminders, and AI tips
+* Unread notifications tracking
+
+8. Guided Meditation & Relaxation
+
+* Short audio/video meditations
+* Breathing exercises with animations
+* Sleep sounds and calming playlists
+
+9. Resource Library
+
+* Curated articles, quotes, and self-help tips
+* Admin-controlled updates
+
+10. Dark Mode & Accessibility
+
+* Light/Dark mode toggle
+* Large font sizes
+* Text-to-speech support for posts and journals
+
+Tech Stack:
+
+* Frontend: Flutter (Dart)
+* State Management: GetX
+* Backend: Firebase (Auth, Firestore, Storage, Cloud Messaging)
+* AI Integration: Gemini/OpenAI API
+* Analytics: Firebase Analytics + Crashlytics
+
+Vision:
+MindMate aims to be a comprehensive mental wellness companion for youth, offering AI therapy, community support, mood tracking, emergency assistance, and mindfulness tools. The platform emphasizes privacy, safety, and accessibility while helping users develop healthy coping strategies and stay connected with supportive peers.

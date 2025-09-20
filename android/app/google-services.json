@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "233819739459",
+    "project_id": "mindmate-9f6d3",
+    "storage_bucket": "mindmate-9f6d3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233819739459:android:6596573b78057f21224bf6",
+        "android_client_info": {
+          "package_name": "com.example.mindmate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "233819739459-87jo4gsnqg3m5qosq3aic6sq5mn3gfi7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mindmate",
+            "certificate_hash": "9efbca5c47e689548524d4b1d1220b2a6cb49847"
+          }
+        },
+        {
+          "client_id": "233819739459-ftp62i2rlprddsdkd71nnp8r4lg0b220.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQY8Ia6-4T3gTo7lR5cU75FXrkhvvVyI0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233819739459-ftp62i2rlprddsdkd71nnp8r4lg0b220.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "233819739459-7a56tc1ojhmls16qi05p6snoqk74ucmu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mindmate"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

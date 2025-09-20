@@ -1,0 +1,135 @@
+MindMate Firebase Firestore Schema
+
+1. Users Collection
+   users (collection)
+   └── userId (document)
+   \- name: string
+   \- email: string
+   \- photoUrl: string
+   \- bio: string
+   \- dob: timestamp
+   \- moodPreferences: array<string>
+   \- createdAt: timestamp
+   \- followers: array<string>
+   \- following: array<string>
+   \- isPrivate: boolean
+   \- sosContacts: array<object>
+   • name: string
+   • phone: string
+   • relation: string
+   \- settings: object
+   • darkMode: boolean
+   • fontSize: string
+   • ttsEnabled: boolean
+
+2. Posts Collection
+   posts (collection)
+   └── postId (document)
+   \- userId: string
+   \- content: string
+   \- imageUrl: string
+   \- isAnonymous: boolean
+   \- createdAt: timestamp
+   \- likesCount: number
+   \- sharesCount: number
+   \- commentsCount: number
+
+└── likes (subcollection)
+└── likeId (document)
+\- userId: string
+\- createdAt: timestamp
+
+└── shares (subcollection)
+└── shareId (document)
+\- userId: string
+\- sharedTo: string
+\- createdAt: timestamp
+
+└── comments (subcollection)
+└── commentId (document)
+\- userId: string
+\- content: string
+\- createdAt: timestamp
+\- likesCount: number
+
+3. Groups Collection
+   groups (collection)
+   └── groupId (document)
+   \- name: string
+   \- description: string
+   \- createdBy: string
+   \- createdAt: timestamp
+   \- members: array<string>
+   \- moderators: array<string>
+
+└── groupPosts (subcollection)
+└── groupPostId (document)
+\- userId: string
+\- content: string
+\- imageUrl: string
+\- createdAt: timestamp
+\- likesCount: number
+\- sharesCount: number
+\- commentsCount: number
+
+```
+   └── likes (subcollection)
+   └── shares (subcollection)
+   └── comments (subcollection)
+```
+
+4\. Mood Tracking
+moods (collection)
+└── moodId (document)
+\- userId: string
+\- mood: string
+\- note: string
+\- createdAt: timestamp
+
+5. AI Chat Sessions
+   chatSessions (collection)
+   └── sessionId (document)
+   \- userId: string
+   \- messages: array<object>
+   • sender: string
+   • text: string
+   • timestamp: timestamp
+   \- createdAt: timestamp
+
+6. Resource Library
+   resources (collection)
+   └── resourceId (document)
+   \- title: string
+   \- type: string
+   \- content: string
+   \- createdAt: timestamp
+   \- addedBy: string
+
+7. Guided Meditation & Relaxation
+   meditations (collection)
+   └── meditationId (document)
+   \- title: string
+   \- type: string
+   \- url: string
+   \- duration: number
+   \- category: string
+   \- createdAt: timestamp
+
+8. Notifications
+   notifications (collection)
+   └── notificationId (document)
+   \- userId: string
+   \- type: string
+   \- referenceId: string
+   \- message: string
+   \- isRead: boolean
+   \- createdAt: timestamp
+
+9. SOS Contacts (inside users document)
+   sosContacts: \[
+   {
+   name: string,
+   phone: string,
+   relation: string
+   }
+   ]
