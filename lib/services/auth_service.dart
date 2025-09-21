@@ -147,10 +147,14 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     try {
+      print('Starting sign out process...');
       await _googleSignIn.signOut();
+      print('Google Sign-In signed out');
       await _auth.signOut();
+      print('Firebase Auth signed out');
     } catch (e) {
       print('Error signing out: $e');
+      throw e; // Re-throw to let the calling code handle it
     }
   }
 

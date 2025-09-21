@@ -7,8 +7,13 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the already initialized AuthViewModel
-    final AuthViewModel authController = Get.find<AuthViewModel>();
+    // Get or create the AuthViewModel safely
+    late AuthViewModel authController;
+    try {
+      authController = Get.find<AuthViewModel>();
+    } catch (e) {
+      authController = Get.put(AuthViewModel());
+    }
     
     return Scaffold(
       appBar: AppBar(
@@ -16,9 +21,22 @@ class HomeView extends StatelessWidget {
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            onPressed: () => authController.signOut(),
-            icon: const Icon(Icons.logout),
+          Obx(() => authController.isLoading.value
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              : IconButton(
+                  onPressed: () => authController.signOut(),
+                  icon: const Icon(Icons.logout),
+                ),
           ),
         ],
       ),

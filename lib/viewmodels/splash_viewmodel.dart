@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../views/auth/login_view.dart';
 import '../views/home/home_view.dart';
 import '../services/auth_service.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class SplashViewModel extends GetxController {
   final AuthService _authService = AuthService();
@@ -28,7 +29,8 @@ class SplashViewModel extends GetxController {
         );
 
         if (profileExists) {
-          // User has complete profile, go to home
+          // User has complete profile, initialize AuthViewModel and go to home
+          Get.put(AuthViewModel());
           Get.offAll(() => const HomeView());
         } else {
           // User needs to complete profile, but Firebase user exists

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../views/auth/profile_form_view.dart';
+import '../views/auth/login_view.dart';
 import '../views/home/home_view.dart';
 
 class AuthViewModel extends GetxController {
@@ -125,16 +126,37 @@ class AuthViewModel extends GetxController {
   // Sign out
   Future<void> signOut() async {
     try {
+      isLoading.value = true;
+      print('AuthViewModel: Starting sign out...');
+      
       await _authService.signOut();
+      print('AuthViewModel: Sign out completed');
+      
       _userModel.value = null;
-      Get.offAllNamed('/login');
+      _firebaseUser.value = null;
+      
+      // Clear any error messages
+      errorMessage.value = '';
+      
+      // Remove this controller from GetX
+      Get.delete<AuthViewModel>();
+      
+      // Navigate to login screen
+      Get.offAll(() => const LoginView());
+      
+      print('AuthViewModel: Navigated to login screen');
     } catch (e) {
+      print('AuthViewModel: Sign out error: $e');
       errorMessage.value = 'Failed to sign out: ${e.toString()}';
       Get.snackbar(
-        'Error',
-        errorMessage.value,
+        'Sign Out Error',
+        'There was a problem signing out. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
+    } finally {
+      isLoading.value = false;
     }
   }
 

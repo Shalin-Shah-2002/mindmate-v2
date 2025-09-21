@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "233819739459-fk3q9c2qqpn34l9n3bf307g8acpor8h1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mindmate",
+            "certificate_hash": "75d13fb431faa06c6e27064cd43a46cb0f0dd178"
+          }
+        },
+        {
           "client_id": "233819739459-ftp62i2rlprddsdkd71nnp8r4lg0b220.apps.googleusercontent.com",
           "client_type": 3
         }
