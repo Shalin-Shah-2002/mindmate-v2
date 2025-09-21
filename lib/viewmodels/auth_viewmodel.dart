@@ -60,13 +60,18 @@ class AuthViewModel extends GetxController {
           print('AuthViewModel: Navigating to home view...');
           Get.offAll(() => const HomeView());
         } else {
-          print('AuthViewModel: User needs to complete profile, navigating to profile form...');
+          print(
+            'AuthViewModel: User needs to complete profile, navigating to profile form...',
+          );
           // User needs to complete profile
           Get.offAll(() => ProfileFormView(firebaseUser: user));
         }
       } else {
-        print('AuthViewModel: Google Sign-In returned null (user may have canceled)');
-        errorMessage.value = 'Sign-in was canceled or failed. Please try again.';
+        print(
+          'AuthViewModel: Google Sign-In returned null (user may have canceled)',
+        );
+        errorMessage.value =
+            'Sign-in was canceled or failed. Please try again.';
         Get.snackbar(
           'Sign-In Canceled',
           'Please try signing in again.',
@@ -78,7 +83,7 @@ class AuthViewModel extends GetxController {
     } catch (e, stackTrace) {
       print('AuthViewModel: Error during Google Sign-In: $e');
       print('AuthViewModel: Stack trace: $stackTrace');
-      
+
       errorMessage.value = 'Failed to sign in with Google. Please try again.';
       Get.snackbar(
         'Sign-In Error',
@@ -128,22 +133,22 @@ class AuthViewModel extends GetxController {
     try {
       isLoading.value = true;
       print('AuthViewModel: Starting sign out...');
-      
+
       await _authService.signOut();
       print('AuthViewModel: Sign out completed');
-      
+
       _userModel.value = null;
       _firebaseUser.value = null;
-      
+
       // Clear any error messages
       errorMessage.value = '';
-      
+
       // Remove this controller from GetX
       Get.delete<AuthViewModel>();
-      
+
       // Navigate to login screen
       Get.offAll(() => const LoginView());
-      
+
       print('AuthViewModel: Navigated to login screen');
     } catch (e) {
       print('AuthViewModel: Sign out error: $e');

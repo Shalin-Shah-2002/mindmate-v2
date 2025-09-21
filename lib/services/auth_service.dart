@@ -7,12 +7,7 @@ import '../models/user_model.dart';
 class AuthService {
   // Direct initialization since Firebase is now properly configured
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'profile',
-    ],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Get current user
@@ -37,7 +32,7 @@ class AuthService {
   // Sign in with Google - Updated approach for type casting issue
   Future<User?> signInWithGoogle() async {
     User? authenticatedUser;
-    
+
     // Set up auth state listener to catch successful authentication
     late final StreamSubscription<User?> authStateSubscription;
     authStateSubscription = _auth.authStateChanges().listen((User? user) {
@@ -49,11 +44,11 @@ class AuthService {
 
     try {
       print('Starting Google Sign-In process...');
-      
+
       // Sign out first to ensure clean state
       await _googleSignIn.signOut();
       print('Cleared previous Google Sign-In state');
-      
+
       // Trigger the authentication flow
       print('Triggering Google Sign-In dialog...');
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -89,49 +84,54 @@ class AuthService {
       // Attempt Firebase sign-in
       print('Signing in to Firebase with Google credential...');
       try {
-        final UserCredential result = await _auth.signInWithCredential(credential);
+        final UserCredential result = await _auth.signInWithCredential(
+          credential,
+        );
         authStateSubscription.cancel();
         print('Firebase sign-in successful: ${result.user?.uid}');
         return result.user;
       } catch (credentialError) {
         print('signInWithCredential failed: $credentialError');
-        
+
         // If this is the type casting error, wait and check if authentication actually succeeded
-        if (credentialError.toString().contains('List<Object?>') || 
+        if (credentialError.toString().contains('List<Object?>') ||
             credentialError.toString().contains('PigeonUserDetails')) {
-          print('Type casting error detected, checking if authentication succeeded...');
-          
+          print(
+            'Type casting error detected, checking if authentication succeeded...',
+          );
+
           // Wait for auth state to potentially update
           await Future.delayed(const Duration(seconds: 2));
-          
+
           authStateSubscription.cancel();
-          
+
           // Check if we caught a successful authentication via the listener
           if (authenticatedUser != null) {
-            print('Authentication succeeded despite error: ${authenticatedUser!.uid}');
+            print(
+              'Authentication succeeded despite error: ${authenticatedUser!.uid}',
+            );
             return authenticatedUser;
           }
-          
+
           // Also check current user
           final currentUser = _auth.currentUser;
           if (currentUser != null) {
             print('Found authenticated user: ${currentUser.uid}');
             return currentUser;
           }
-          
+
           print('Authentication did not succeed');
         }
-        
+
         throw credentialError;
       }
-      
     } catch (e, stackTrace) {
       print('Google Sign-In failed: $e');
       print('Error type: ${e.runtimeType}');
       print('Stack trace: $stackTrace');
-      
+
       authStateSubscription.cancel();
-      
+
       // Try cleanup
       try {
         await _googleSignIn.signOut();
@@ -139,7 +139,7 @@ class AuthService {
       } catch (signOutError) {
         print('Error during cleanup sign out: $signOutError');
       }
-      
+
       return null;
     }
   }

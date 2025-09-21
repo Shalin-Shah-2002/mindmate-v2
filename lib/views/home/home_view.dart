@@ -14,29 +14,30 @@ class HomeView extends StatelessWidget {
     } catch (e) {
       authController = Get.put(AuthViewModel());
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('MindMate'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         actions: [
-          Obx(() => authController.isLoading.value
-              ? const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+          Obx(
+            () => authController.isLoading.value
+                ? const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     ),
+                  )
+                : IconButton(
+                    onPressed: () => authController.signOut(),
+                    icon: const Icon(Icons.logout),
                   ),
-                )
-              : IconButton(
-                  onPressed: () => authController.signOut(),
-                  icon: const Icon(Icons.logout),
-                ),
           ),
         ],
       ),
@@ -76,7 +77,10 @@ class HomeView extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    if (authController.userModel!.moodPreferences.isNotEmpty) ...[
+                    if (authController
+                        .userModel!
+                        .moodPreferences
+                        .isNotEmpty) ...[
                       const Text(
                         'Your Focus Areas:',
                         style: TextStyle(
@@ -106,7 +110,10 @@ class HomeView extends StatelessWidget {
                   children: [
                     Text(
                       'Home Screen',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 16),
                     Text('Welcome to MindMate!'),
