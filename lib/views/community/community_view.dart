@@ -86,6 +86,203 @@ class CommunityView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
+                // Search bar
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'Search users or posts...',
+                            border: InputBorder.none,
+                          ),
+                          onChanged: controller.updateSearchQuery,
+                        ),
+                      ),
+                      Obx(
+                        () => controller.searchQuery.value.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: controller.clearSearch,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Search results panel
+                Obx(() {
+                  if (!controller.showSearchResults.value) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (controller.isSearching.value)
+                        const LinearProgressIndicator(minHeight: 2),
+                      const SizedBox(height: 8),
+                      if (controller.searchUsersResults.isNotEmpty) ...[
+                        const Text(
+                          'People',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2C3E50),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: controller.searchUsersResults.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (context, i) {
+                            final user = controller.searchUsersResults[i];
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.grey[200],
+                                backgroundImage: (user.photoUrl.isNotEmpty)
+                                    ? NetworkImage(user.photoUrl)
+                                    : null,
+                                child: user.photoUrl.isEmpty
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.grey,
+                                      )
+                                    : null,
+                              ),
+                              title: Text(
+                                user.name.isNotEmpty ? user.name : user.email,
+                              ),
+                              subtitle: Text(user.email),
+                              onTap: () {
+                                // For now, just close search results
+                                controller.clearSearch();
+                                // Future: Navigate to user's profile
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (controller.searchPostsResults.isNotEmpty) ...[
+                        const Text(
+                          'Posts',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2C3E50),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: controller.searchPostsResults.length,
+                          itemBuilder: (context, i) {
+                            final post = controller.searchPostsResults[i];
+                            // Lightweight tile; tap could open a post detail later
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: Colors.grey[200],
+                                    backgroundImage:
+                                        (post.profilePhotoUrl.isNotEmpty)
+                                        ? NetworkImage(post.profilePhotoUrl)
+                                        : null,
+                                    child: post.profilePhotoUrl.isEmpty
+                                        ? const Icon(
+                                            Icons.person,
+                                            size: 18,
+                                            color: Colors.grey,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          post.isAnonymous
+                                              ? 'Anonymous User'
+                                              : (post.authorName.isNotEmpty
+                                                    ? post.authorName
+                                                    : (post.userName.isNotEmpty
+                                                          ? post.userName
+                                                          : 'Community Member')),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          post.content,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (controller.searchUsersResults.isEmpty &&
+                          controller.searchPostsResults.isEmpty &&
+                          !controller.isSearching.value)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'No results found',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
+
                 // Enhanced Quick Groups Section
                 const Text(
                   'Support Groups',

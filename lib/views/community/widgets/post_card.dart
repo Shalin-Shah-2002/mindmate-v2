@@ -65,11 +65,32 @@ class PostCard extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 22,
                     backgroundColor: Colors.white,
-                    child: Icon(
-                      post.isAnonymous ? Icons.visibility_off : Icons.person,
-                      size: 24,
-                      color: Theme.of(context).primaryColor,
-                    ),
+                    child: post.isAnonymous
+                        ? Icon(
+                            Icons.visibility_off,
+                            size: 24,
+                            color: Theme.of(context).primaryColor,
+                          )
+                        : (post.profilePhotoUrl.isNotEmpty
+                              ? ClipOval(
+                                  child: Image.network(
+                                    post.profilePhotoUrl,
+                                    width: 44,
+                                    height: 44,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Icon(
+                                          Icons.person,
+                                          size: 24,
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.person,
+                                  size: 24,
+                                  color: Theme.of(context).primaryColor,
+                                )),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -80,9 +101,11 @@ class PostCard extends StatelessWidget {
                       Text(
                         post.isAnonymous
                             ? 'Anonymous User'
-                            : (post.authorName ??
-                                  post.userName ??
-                                  'Community Member'),
+                            : (post.authorName.isNotEmpty
+                                  ? post.authorName
+                                  : (post.userName.isNotEmpty
+                                        ? post.userName
+                                        : 'Community Member')),
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,

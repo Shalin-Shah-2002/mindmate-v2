@@ -1,12 +1,16 @@
 import 'package:get/get.dart';
 import '../models/post_model.dart';
+import '../models/user_model.dart';
 import '../services/post_service.dart';
 import '../services/auth_service.dart';
+import '../services/search_service.dart';
 import 'auth_viewmodel.dart';
+import 'package:get/get_rx/src/rx_workers/rx_workers.dart';
 
 class CommunityViewModel extends GetxController {
   final PostService _postService = PostService();
   final AuthService _authService = AuthService();
+  final SearchService _searchService = SearchService();
 
   // Observable lists
   final RxList<PostModel> posts = <PostModel>[].obs;
@@ -22,6 +26,14 @@ class CommunityViewModel extends GetxController {
   // Track which posts are currently being liked to prevent multiple clicks
   final RxSet<String> likingPosts = <String>{}.obs;
 
+  // Search state
+  final RxString searchQuery = ''.obs;
+  final RxBool isSearching = false.obs;
+  final RxList<UserModel> searchUsersResults = <UserModel>[].obs;
+  final RxList<PostModel> searchPostsResults = <PostModel>[].obs;
+  final RxBool showSearchResults = false.obs;
+  late final Worker _searchWorker;
+
   // Post creation
   final RxString postContent = ''.obs;
   final RxString selectedMood = ''.obs;
@@ -32,6 +44,17 @@ class CommunityViewModel extends GetxController {
   void onInit() {
     super.onInit();
     loadPosts();
+    // Debounced search
+    _searchWorker = debounce<String>(searchQuery, (q) async {
+      final text = q.trim();
+      if (text.isEmpty) {
+        showSearchResults.value = false;
+        searchUsersResults.clear();
+        searchPostsResults.clear();
+        return;
+      }
+      await _runSearch(text);
+    }, time: const Duration(milliseconds: 300));
   }
 
   // Load all posts
@@ -44,6 +67,41 @@ class CommunityViewModel extends GetxController {
       Get.snackbar('Error', 'Failed to load posts: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void updateSearchQuery(String value) {
+    searchQuery.value = value;
+  }
+
+  void clearSearch() {
+    searchQuery.value = '';
+    isSearching.value = false;
+    showSearchResults.value = false;
+    searchUsersResults.clear();
+    searchPostsResults.clear();
+  }
+
+  @override
+  void onClose() {
+    _searchWorker.dispose();
+    super.onClose();
+  }
+
+  Future<void> _runSearch(String query) async {
+    try {
+      isSearching.value = true;
+      showSearchResults.value = true;
+      // Run in parallel
+      final usersF = _searchService.searchUsers(query, limit: 15);
+      final postsF = _searchService.searchPosts(query, limit: 30);
+      final results = await Future.wait([usersF, postsF]);
+      searchUsersResults.assignAll(results[0] as List<UserModel>);
+      searchPostsResults.assignAll(results[1] as List<PostModel>);
+    } catch (e) {
+      Get.snackbar('Search error', 'Failed to search: $e');
+    } finally {
+      isSearching.value = false;
     }
   }
 

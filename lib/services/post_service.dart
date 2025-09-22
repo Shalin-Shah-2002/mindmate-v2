@@ -5,6 +5,8 @@ import '../models/post_model.dart';
 class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Simple in-memory cache to avoid repeated user lookups per session
+  final Map<String, Map<String, dynamic>> _userCache = {};
 
   // Get current user ID
   String? get currentUserId => _auth.currentUser?.uid;
@@ -14,7 +16,37 @@ class PostService {
     try {
       if (currentUserId == null) return false;
 
-      await _firestore.collection('posts').add(post.toMap());
+      // Denormalize author fields for reliable display
+      final data = post.toMap();
+      if (!post.isAnonymous) {
+        // Prefer users collection, fallback to FirebaseAuth user fields
+        final userData = await _fetchUserData(currentUserId!);
+        final authUser = _auth.currentUser;
+        final name =
+            userData['displayName'] ??
+            userData['name'] ??
+            userData['username'] ??
+            authUser?.displayName ??
+            '';
+        final photoUrl =
+            (userData['profilePhotoUrl'] ??
+                    userData['photoURL'] ??
+                    userData['photoUrl'] ??
+                    userData['avatarUrl'] ??
+                    userData['avatar'] ??
+                    userData['profilePic'] ??
+                    userData['profile_picture'] ??
+                    userData['imageUrl'] ??
+                    userData['imageURL'] ??
+                    authUser?.photoURL ??
+                    '')
+                .toString();
+        data['authorName'] = name;
+        data['userName'] = name;
+        data['profilePhotoUrl'] = photoUrl;
+      }
+
+      await _firestore.collection('posts').add(data);
       return true;
     } catch (e) {
       print('Error creating post: $e');
@@ -35,12 +67,35 @@ class PostService {
           .map((doc) => PostModel.fromMap(doc.data(), doc.id))
           .toList();
 
-      // Enrich posts with author display names when not present
+      // Enrich posts with author display names and profile photo when not anonymous
       for (var i = 0; i < posts.length; i++) {
         final p = posts[i];
-        if (p.authorName.isEmpty && p.userId.isNotEmpty) {
-          final name = await _fetchUserDisplayName(p.userId);
-          posts[i] = p.copyWith(authorName: name, userName: name);
+        if (p.userId.isNotEmpty && !p.isAnonymous) {
+          final userData = await _fetchUserData(p.userId);
+          final name =
+              userData['displayName'] ??
+              userData['name'] ??
+              userData['username'] ??
+              userData['fullName'] ??
+              '';
+          // Try common field names for photo URL
+          final photoUrl =
+              (userData['profilePhotoUrl'] ??
+                      userData['photoURL'] ??
+                      userData['photoUrl'] ??
+                      userData['avatarUrl'] ??
+                      userData['avatar'] ??
+                      userData['profilePic'] ??
+                      userData['profile_picture'] ??
+                      userData['imageUrl'] ??
+                      userData['imageURL'] ??
+                      '')
+                  .toString();
+          posts[i] = p.copyWith(
+            authorName: name,
+            userName: name,
+            profilePhotoUrl: photoUrl,
+          );
         }
       }
 
@@ -61,9 +116,42 @@ class PostService {
           .limit(limit)
           .get();
 
-      return querySnapshot.docs
+      final posts = querySnapshot.docs
           .map((doc) => PostModel.fromMap(doc.data(), doc.id))
           .toList();
+
+      // Enrich with author names and profile photo when not anonymous
+      for (var i = 0; i < posts.length; i++) {
+        final p = posts[i];
+        if (p.userId.isNotEmpty && !p.isAnonymous) {
+          final userData = await _fetchUserData(p.userId);
+          final name =
+              userData['displayName'] ??
+              userData['name'] ??
+              userData['username'] ??
+              userData['fullName'] ??
+              '';
+          final photoUrl =
+              (userData['profilePhotoUrl'] ??
+                      userData['photoURL'] ??
+                      userData['photoUrl'] ??
+                      userData['avatarUrl'] ??
+                      userData['avatar'] ??
+                      userData['profilePic'] ??
+                      userData['profile_picture'] ??
+                      userData['imageUrl'] ??
+                      userData['imageURL'] ??
+                      '')
+                  .toString();
+          posts[i] = p.copyWith(
+            authorName: name,
+            userName: name,
+            profilePhotoUrl: photoUrl,
+          );
+        }
+      }
+
+      return posts;
     } catch (e) {
       print('Error getting user posts: $e');
       // If the query fails due to index issues, try a simpler query
@@ -90,12 +178,34 @@ class PostService {
       // Sort by createdAt manually
       posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      // Enrich with author names
+      // Enrich with author names and profile photo when not anonymous
       for (var i = 0; i < posts.length; i++) {
         final p = posts[i];
-        if (p.authorName.isEmpty && p.userId.isNotEmpty) {
-          final name = await _fetchUserDisplayName(p.userId);
-          posts[i] = p.copyWith(authorName: name, userName: name);
+        if (p.userId.isNotEmpty && !p.isAnonymous) {
+          final userData = await _fetchUserData(p.userId);
+          final name =
+              userData['displayName'] ??
+              userData['name'] ??
+              userData['username'] ??
+              userData['fullName'] ??
+              '';
+          final photoUrl =
+              (userData['profilePhotoUrl'] ??
+                      userData['photoURL'] ??
+                      userData['photoUrl'] ??
+                      userData['avatarUrl'] ??
+                      userData['avatar'] ??
+                      userData['profilePic'] ??
+                      userData['profile_picture'] ??
+                      userData['imageUrl'] ??
+                      userData['imageURL'] ??
+                      '')
+                  .toString();
+          posts[i] = p.copyWith(
+            authorName: name,
+            userName: name,
+            profilePhotoUrl: photoUrl,
+          );
         }
       }
 
@@ -121,22 +231,25 @@ class PostService {
         );
   }
 
-  // Helper to fetch a user's display name from `users` collection
-  Future<String> _fetchUserDisplayName(String userId) async {
+  // Helper to fetch a user's data from `users` collection
+  Future<Map<String, dynamic>> _fetchUserData(String userId) async {
     try {
+      // Check cache first
+      final cached = _userCache[userId];
+      if (cached != null) return cached;
+
       final doc = await _firestore.collection('users').doc(userId).get();
       if (doc.exists) {
         final data = doc.data();
         if (data != null) {
-          return (data['displayName'] as String?) ??
-              (data['name'] as String?) ??
-              '';
+          _userCache[userId] = data;
+          return data;
         }
       }
-      return '';
+      return {};
     } catch (e) {
-      print('Error fetching user display name: $e');
-      return '';
+      print('Error fetching user data: $e');
+      return {};
     }
   }
 

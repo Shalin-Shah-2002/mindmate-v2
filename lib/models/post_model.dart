@@ -12,6 +12,7 @@ class PostModel {
   final int commentsCount;
   final String authorName;
   final String userName;
+  final String profilePhotoUrl;
   final bool isLiked;
 
   PostModel({
@@ -26,6 +27,7 @@ class PostModel {
     this.commentsCount = 0,
     this.authorName = '',
     this.userName = '',
+    this.profilePhotoUrl = '',
     this.isLiked = false,
   });
 
@@ -42,6 +44,7 @@ class PostModel {
       'commentsCount': commentsCount,
       'authorName': authorName,
       'userName': userName,
+      'profilePhotoUrl': profilePhotoUrl,
     };
   }
 
@@ -49,7 +52,7 @@ class PostModel {
   static PostModel fromMap(Map<String, dynamic> map, String documentId) {
     return PostModel(
       id: documentId,
-      userId: map['userId'] ?? '',
+      userId: (map['userId'] ?? map['uid'] ?? map['authorId'] ?? '') as String,
       content: map['content'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       isAnonymous: map['isAnonymous'] ?? false,
@@ -59,6 +62,9 @@ class PostModel {
       commentsCount: map['commentsCount'] ?? 0,
       authorName: (map['authorName'] ?? map['userName'] ?? '') as String,
       userName: (map['userName'] ?? map['authorName'] ?? '') as String,
+      profilePhotoUrl:
+          (map['profilePhotoUrl'] ?? map['photoURL'] ?? map['photoUrl'] ?? '')
+              as String,
       isLiked: map['isLiked'] ?? false,
     );
   }
@@ -76,6 +82,7 @@ class PostModel {
     int? commentsCount,
     String? authorName,
     String? userName,
+    String? profilePhotoUrl,
     bool? isLiked,
   }) {
     return PostModel(
@@ -90,6 +97,7 @@ class PostModel {
       commentsCount: commentsCount ?? this.commentsCount,
       authorName: authorName ?? this.authorName,
       userName: userName ?? this.userName,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
       isLiked: isLiked ?? this.isLiked,
     );
   }
