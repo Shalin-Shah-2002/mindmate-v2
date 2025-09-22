@@ -31,9 +31,20 @@ class PostService {
           .limit(limit)
           .get();
 
-      return querySnapshot.docs
+      final posts = querySnapshot.docs
           .map((doc) => PostModel.fromMap(doc.data(), doc.id))
           .toList();
+
+      // Enrich posts with author display names when not present
+      for (var i = 0; i < posts.length; i++) {
+        final p = posts[i];
+        if (p.authorName.isEmpty && p.userId.isNotEmpty) {
+          final name = await _fetchUserDisplayName(p.userId);
+          posts[i] = p.copyWith(authorName: name, userName: name);
+        }
+      }
+
+      return posts;
     } catch (e) {
       print('Error getting posts: $e');
       return [];
@@ -55,12 +66,49 @@ class PostService {
           .toList();
     } catch (e) {
       print('Error getting user posts: $e');
+      // If the query fails due to index issues, try a simpler query
+      return await getUserPostsSimple(userId, limit: limit);
+    }
+  }
+
+  // Fallback method for user posts without ordering (simpler query)
+  Future<List<PostModel>> getUserPostsSimple(
+    String userId, {
+    int limit = 20,
+  }) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('posts')
+          .where('userId', isEqualTo: userId)
+          .limit(limit)
+          .get();
+
+      final posts = querySnapshot.docs
+          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      // Sort by createdAt manually
+      posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      // Enrich with author names
+      for (var i = 0; i < posts.length; i++) {
+        final p = posts[i];
+        if (p.authorName.isEmpty && p.userId.isNotEmpty) {
+          final name = await _fetchUserDisplayName(p.userId);
+          posts[i] = p.copyWith(authorName: name, userName: name);
+        }
+      }
+
+      return posts;
+    } catch (e) {
+      print('Error getting user posts (simple): $e');
       return [];
     }
   }
 
   // Get posts stream for real-time updates
   Stream<List<PostModel>> getPostsStream({int limit = 20}) {
+    // Note: Stream mapping is kept synchronous; downstream UI should fetch author names if needed.
     return _firestore
         .collection('posts')
         .orderBy('createdAt', descending: true)
@@ -71,6 +119,25 @@ class PostService {
               .map((doc) => PostModel.fromMap(doc.data(), doc.id))
               .toList(),
         );
+  }
+
+  // Helper to fetch a user's display name from `users` collection
+  Future<String> _fetchUserDisplayName(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null) {
+          return (data['displayName'] as String?) ??
+              (data['name'] as String?) ??
+              '';
+        }
+      }
+      return '';
+    } catch (e) {
+      print('Error fetching user display name: $e');
+      return '';
+    }
   }
 
   // Like a post

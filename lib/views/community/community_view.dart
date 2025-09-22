@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/community_viewmodel.dart';
+import 'widgets/group_card.dart';
+import 'widgets/empty_state.dart';
+import 'widgets/post_card.dart';
 
 class CommunityView extends StatelessWidget {
   const CommunityView({super.key});
@@ -97,36 +100,36 @@ class CommunityView extends StatelessWidget {
                   height: 120,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    children: [
-                      _buildEnhancedGroupCard(
-                        'Anxiety Support',
-                        Icons.psychology_outlined,
-                        const Color(0xFF6366F1),
-                        '2.3k members',
+                    children: const [
+                      GroupCard(
+                        title: 'Anxiety Support',
+                        icon: Icons.psychology_outlined,
+                        color: Color(0xFF6366F1),
+                        memberCount: '2.3k members',
                       ),
-                      _buildEnhancedGroupCard(
-                        'Depression Help',
-                        Icons.favorite_outline,
-                        const Color(0xFFEC4899),
-                        '1.8k members',
+                      GroupCard(
+                        title: 'Depression Help',
+                        icon: Icons.favorite_outline,
+                        color: Color(0xFFEC4899),
+                        memberCount: '1.8k members',
                       ),
-                      _buildEnhancedGroupCard(
-                        'Exam Stress',
-                        Icons.school_outlined,
-                        const Color(0xFFF59E0B),
-                        '1.2k members',
+                      GroupCard(
+                        title: 'Exam Stress',
+                        icon: Icons.school_outlined,
+                        color: Color(0xFFF59E0B),
+                        memberCount: '1.2k members',
                       ),
-                      _buildEnhancedGroupCard(
-                        'General Chat',
-                        Icons.chat_outlined,
-                        const Color(0xFF10B981),
-                        '3.1k members',
+                      GroupCard(
+                        title: 'General Chat',
+                        icon: Icons.chat_outlined,
+                        color: Color(0xFF10B981),
+                        memberCount: '3.1k members',
                       ),
-                      _buildEnhancedGroupCard(
-                        'Self Care',
-                        Icons.spa_outlined,
-                        const Color(0xFF8B5CF6),
-                        '956 members',
+                      GroupCard(
+                        title: 'Self Care',
+                        icon: Icons.spa_outlined,
+                        color: Color(0xFF8B5CF6),
+                        memberCount: '956 members',
                       ),
                     ],
                   ),
@@ -151,7 +154,9 @@ class CommunityView extends StatelessWidget {
                   }
 
                   if (controller.posts.isEmpty) {
-                    return _buildEmptyState(controller);
+                    return EmptyState(
+                      onCreate: () => _showCreatePostDialog(controller),
+                    );
                   }
 
                   return ListView.builder(
@@ -160,7 +165,12 @@ class CommunityView extends StatelessWidget {
                     itemCount: controller.posts.length,
                     itemBuilder: (context, index) {
                       final post = controller.posts[index];
-                      return _buildPostCard(context, controller, post, index);
+                      return PostCard(
+                        controller: controller,
+                        post: post,
+                        index: index,
+                        onShowComments: _showCommentsDialog,
+                      );
                     },
                   );
                 }),
@@ -173,69 +183,7 @@ class CommunityView extends StatelessWidget {
     );
   }
 
-  Widget _buildEnhancedGroupCard(
-    String title,
-    IconData icon,
-    Color color,
-    String memberCount,
-  ) {
-    return Container(
-      width: 140,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF2C3E50),
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              memberCount,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Group card rendering moved to `widgets/group_card.dart` as `GroupCard`.
 
   void _showCreatePostDialog(CommunityViewModel controller) {
     Get.dialog(
@@ -482,304 +430,8 @@ class CommunityView extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(CommunityViewModel controller) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.forum_outlined,
-              size: 48,
-              color: Color(0xFF6366F1),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'No posts yet',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2C3E50),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Be the first to share something with the community!\nYour story might inspire others.',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 16,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => _showCreatePostDialog(controller),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Create First Post',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostCard(
-    BuildContext context,
-    CommunityViewModel controller,
-    dynamic post,
-    int index,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            spreadRadius: 0,
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Post header
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor.withOpacity(0.7),
-                      ],
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      post.isAnonymous ? Icons.visibility_off : Icons.person,
-                      size: 24,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.isAnonymous
-                            ? 'Anonymous User'
-                            : 'Community Member',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Color(0xFF2C3E50),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: Colors.grey[500],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatTime(post.createdAt),
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuButton(
-                  icon: Icon(Icons.more_vert, color: Colors.grey[400]),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'report',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.flag_outlined,
-                            color: Colors.red[400],
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text('Report Post'),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) {
-                    if (value == 'report') {
-                      controller.reportPost(post.id, 'Inappropriate content');
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Post content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              post.content,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.5,
-                color: Color(0xFF374151),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Interaction bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              children: [
-                _buildInteractionButton(
-                  icon: Icons.favorite,
-                  count: post.likesCount,
-                  color: Colors.red,
-                  onTap: () => controller.toggleLike(post.id, index),
-                ),
-                const SizedBox(width: 24),
-                _buildInteractionButton(
-                  icon: Icons.chat_bubble_outline,
-                  count: post.commentsCount,
-                  color: Colors.blue,
-                  onTap: () => _showCommentsDialog(controller, post, index),
-                ),
-                const SizedBox(width: 24),
-                _buildInteractionButton(
-                  icon: Icons.share_outlined,
-                  count: post.sharesCount,
-                  color: Colors.green,
-                  onTap: () {
-                    Get.snackbar(
-                      'Coming Soon',
-                      'Share functionality will be available soon!',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Text(
-                    '${post.likesCount + post.commentsCount} interactions',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInteractionButton({
-    required IconData icon,
-    required int count,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 6),
-            Text(
-              count.toString(),
-              style: TextStyle(
-                color: color,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Empty state, post card and interaction button are implemented as
+  // separate widgets under `lib/views/community/widgets/`.
 
   void _showCommentsDialog(
     CommunityViewModel controller,
@@ -970,16 +622,5 @@ class CommunityView extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${difference.inDays}d ago';
-    }
-  }
+  // Time formatting moved to PostCard widget if needed.
 }

@@ -26,20 +26,26 @@ class AuthViewModel extends GetxController {
     super.onInit();
     // Listen to auth state changes only if Firebase is available
     _initializeAuthListener();
-    
+
     // Also check if there's already a current user
     _checkCurrentUser();
   }
 
   void _checkCurrentUser() async {
     try {
+      isLoading.value = true; // Set loading during initial check
       final currentUser = _authService.currentUser;
       if (currentUser != null) {
-        print('AuthViewModel: Found existing user ${currentUser.uid}, loading profile...');
+        print(
+          'AuthViewModel: Found existing user ${currentUser.uid}, loading profile...',
+        );
         await _loadUserProfile(currentUser.uid);
       }
     } catch (e) {
       print('AuthViewModel: Error checking current user: $e');
+      errorMessage.value = 'Error checking authentication status';
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -47,15 +53,19 @@ class AuthViewModel extends GetxController {
     try {
       // Bind stream and listen to changes to load user profile
       _firebaseUser.bindStream(_authService.authStateChanges);
-      
+
       // Listen to Firebase user changes and load user profile accordingly
       ever(_firebaseUser, (User? firebaseUser) async {
         if (firebaseUser != null) {
           print('AuthViewModel: Firebase user detected, loading profile...');
-          await _loadUserProfile(firebaseUser.uid);
+          // Only load profile if we don't have one yet to avoid conflicts
+          if (_userModel.value == null) {
+            await _loadUserProfile(firebaseUser.uid);
+          }
         } else {
           print('AuthViewModel: No Firebase user, clearing profile...');
           _userModel.value = null;
+          errorMessage.value = '';
         }
       });
     } catch (e) {
@@ -80,6 +90,26 @@ class AuthViewModel extends GetxController {
     } catch (e) {
       print('AuthViewModel: Error loading user profile: $e');
       _userModel.value = null;
+    }
+  }
+
+  // Public method to refresh user profile
+  Future<void> refreshUserProfile() async {
+    if (_firebaseUser.value?.uid == null) {
+      print('AuthViewModel: Cannot refresh profile - no user logged in');
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      print('AuthViewModel: Refreshing user profile...');
+      await _loadUserProfile(_firebaseUser.value!.uid);
+      print('AuthViewModel: Profile refresh completed');
+    } catch (e) {
+      print('AuthViewModel: Error refreshing user profile: $e');
+      errorMessage.value = 'Failed to load profile. Please try again.';
+    } finally {
+      isLoading.value = false;
     }
   }
 

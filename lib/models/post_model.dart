@@ -10,6 +10,9 @@ class PostModel {
   final int likesCount;
   final int sharesCount;
   final int commentsCount;
+  final String authorName;
+  final String userName;
+  final bool isLiked;
 
   PostModel({
     required this.id,
@@ -21,6 +24,9 @@ class PostModel {
     this.likesCount = 0,
     this.sharesCount = 0,
     this.commentsCount = 0,
+    this.authorName = '',
+    this.userName = '',
+    this.isLiked = false,
   });
 
   // Convert to map for Firestore
@@ -34,6 +40,8 @@ class PostModel {
       'likesCount': likesCount,
       'sharesCount': sharesCount,
       'commentsCount': commentsCount,
+      'authorName': authorName,
+      'userName': userName,
     };
   }
 
@@ -49,6 +57,9 @@ class PostModel {
       likesCount: map['likesCount'] ?? 0,
       sharesCount: map['sharesCount'] ?? 0,
       commentsCount: map['commentsCount'] ?? 0,
+      authorName: (map['authorName'] ?? map['userName'] ?? '') as String,
+      userName: (map['userName'] ?? map['authorName'] ?? '') as String,
+      isLiked: map['isLiked'] ?? false,
     );
   }
 
@@ -63,6 +74,9 @@ class PostModel {
     int? likesCount,
     int? sharesCount,
     int? commentsCount,
+    String? authorName,
+    String? userName,
+    bool? isLiked,
   }) {
     return PostModel(
       id: id ?? this.id,
@@ -74,6 +88,9 @@ class PostModel {
       likesCount: likesCount ?? this.likesCount,
       sharesCount: sharesCount ?? this.sharesCount,
       commentsCount: commentsCount ?? this.commentsCount,
+      authorName: authorName ?? this.authorName,
+      userName: userName ?? this.userName,
+      isLiked: isLiked ?? this.isLiked,
     );
   }
 }

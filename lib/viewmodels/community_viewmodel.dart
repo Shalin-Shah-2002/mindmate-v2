@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../models/post_model.dart';
 import '../services/post_service.dart';
 import '../services/auth_service.dart';
+import 'auth_viewmodel.dart';
 
 class CommunityViewModel extends GetxController {
   final PostService _postService = PostService();
@@ -15,6 +16,11 @@ class CommunityViewModel extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isLoadingUserPosts = false.obs;
   final RxBool isCreatingPost = false.obs;
+  final RxBool hasTriedLoadingUserPosts =
+      false.obs; // Track if we've attempted to load user posts
+
+  // Track which posts are currently being liked to prevent multiple clicks
+  final RxSet<String> likingPosts = <String>{}.obs;
 
   // Post creation
   final RxString postContent = ''.obs;
@@ -42,16 +48,49 @@ class CommunityViewModel extends GetxController {
   }
 
   // Load user's posts
-  Future<void> loadUserPosts(String userId) async {
+  Future<void> loadUserPosts() async {
+    if (hasTriedLoadingUserPosts.value) return; // Only try once
+
+    final currentUser = Get.find<AuthViewModel>().userModel;
+    if (currentUser == null) return;
+
     try {
       isLoadingUserPosts.value = true;
-      final userPostsList = await _postService.getUserPosts(userId);
-      userPosts.value = userPostsList;
+      hasTriedLoadingUserPosts.value = true;
+
+      // Get user posts using PostService directly
+      final posts = await _postService.getUserPosts(currentUser.id);
+      userPosts.value = posts;
+      print('CommunityViewModel: Loaded ${posts.length} user posts');
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load user posts: $e');
+      print('CommunityViewModel: Error loading user posts: $e');
+
+      // Check if the error is related to missing index and try fallback
+      if (e.toString().contains('failed-precondition') ||
+          e.toString().contains('index is currently building') ||
+          e.toString().contains('requires an index')) {
+        print('CommunityViewModel: Trying fallback method due to index issue');
+        try {
+          final fallbackPosts = await _postService.getUserPostsSimple(
+            currentUser.id,
+          );
+          userPosts.value = fallbackPosts;
+          print(
+            'CommunityViewModel: Fallback loaded ${fallbackPosts.length} user posts',
+          );
+        } catch (fallbackError) {
+          print('CommunityViewModel: Fallback also failed: $fallbackError');
+        }
+      }
     } finally {
       isLoadingUserPosts.value = false;
     }
+  }
+
+  // Add method to manually retry loading user posts
+  Future<void> retryLoadUserPosts() async {
+    hasTriedLoadingUserPosts.value = false; // Reset the flag
+    await loadUserPosts();
   }
 
   // Create a new post
@@ -103,16 +142,51 @@ class CommunityViewModel extends GetxController {
     }
   }
 
-  // Like/Unlike a post
+  // Like/Unlike a post with optimistic updates
   Future<void> toggleLike(String postId, int index) async {
+    // Prevent multiple simultaneous like requests on same post
+    if (likingPosts.contains(postId)) return;
+
+    // Get the current post and keep a reference to revert on error
+    if (index < 0 || index >= posts.length) return;
+    final post = posts[index];
+
     try {
+      likingPosts.add(postId);
+
+      // Check current like status
+      final isCurrentlyLiked = await _postService.isPostLiked(postId);
+
+      // OPTIMISTIC UPDATE: Update UI immediately for better UX using copyWith
+      final optimisticLikeCount = isCurrentlyLiked
+          ? (post.likesCount > 0 ? post.likesCount - 1 : 0)
+          : post.likesCount + 1;
+
+      final optimisticPost = post.copyWith(likesCount: optimisticLikeCount);
+
+      // Update UI immediately (replace single item)
+      posts[index] = optimisticPost;
+
+      // Now make the API call
       final success = await _postService.likePost(postId);
-      if (success) {
-        // Reload posts to get updated counts
-        await loadPosts();
+
+      if (!success) {
+        // If API call failed, revert the optimistic update
+        posts[index] = post;
+        Get.snackbar('Error', 'Failed to like post. Please try again.');
+      } else {
+        print(
+          'CommunityViewModel: Post ${isCurrentlyLiked ? 'unliked' : 'liked'} successfully',
+        );
       }
     } catch (e) {
+      // If there's an error, revert to original state (only revert the single item)
+      if (index >= 0 && index < posts.length) {
+        posts[index] = post;
+      }
       Get.snackbar('Error', 'Failed to like post: $e');
+    } finally {
+      likingPosts.remove(postId);
     }
   }
 
@@ -123,8 +197,25 @@ class CommunityViewModel extends GetxController {
     try {
       final success = await _postService.addComment(postId, content);
       if (success) {
-        // Reload posts to get updated counts
-        await loadPosts();
+        // Update the local post data instead of refreshing everything
+        if (postIndex >= 0 && postIndex < posts.length) {
+          final post = posts[postIndex];
+
+          // Create updated post with incremented comment count
+          final updatedPost = PostModel(
+            id: post.id,
+            userId: post.userId,
+            content: post.content,
+            imageUrl: post.imageUrl,
+            isAnonymous: post.isAnonymous,
+            createdAt: post.createdAt,
+            likesCount: post.likesCount,
+            commentsCount: post.commentsCount + 1,
+            sharesCount: post.sharesCount,
+          );
+
+          posts[postIndex] = updatedPost;
+        }
         Get.snackbar('Success', 'Comment added successfully');
       }
     } catch (e) {
@@ -207,6 +298,11 @@ class CommunityViewModel extends GetxController {
   // Check if current user liked a post
   Future<bool> isPostLiked(String postId) async {
     return await _postService.isPostLiked(postId);
+  }
+
+  // Check if a post is currently being liked (for UI loading state)
+  bool isPostBeingLiked(String postId) {
+    return likingPosts.contains(postId);
   }
 
   // Available moods for post creation
