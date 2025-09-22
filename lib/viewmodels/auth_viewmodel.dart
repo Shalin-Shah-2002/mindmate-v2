@@ -5,7 +5,7 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../views/auth/profile_form_view.dart';
 import '../views/auth/login_view.dart';
-import '../views/home/home_view.dart';
+import '../views/main_navigation_view.dart';
 
 class AuthViewModel extends GetxController {
   final AuthService _authService = AuthService();
@@ -26,15 +26,60 @@ class AuthViewModel extends GetxController {
     super.onInit();
     // Listen to auth state changes only if Firebase is available
     _initializeAuthListener();
+    
+    // Also check if there's already a current user
+    _checkCurrentUser();
+  }
+
+  void _checkCurrentUser() async {
+    try {
+      final currentUser = _authService.currentUser;
+      if (currentUser != null) {
+        print('AuthViewModel: Found existing user ${currentUser.uid}, loading profile...');
+        await _loadUserProfile(currentUser.uid);
+      }
+    } catch (e) {
+      print('AuthViewModel: Error checking current user: $e');
+    }
   }
 
   void _initializeAuthListener() {
     try {
+      // Bind stream and listen to changes to load user profile
       _firebaseUser.bindStream(_authService.authStateChanges);
+      
+      // Listen to Firebase user changes and load user profile accordingly
+      ever(_firebaseUser, (User? firebaseUser) async {
+        if (firebaseUser != null) {
+          print('AuthViewModel: Firebase user detected, loading profile...');
+          await _loadUserProfile(firebaseUser.uid);
+        } else {
+          print('AuthViewModel: No Firebase user, clearing profile...');
+          _userModel.value = null;
+        }
+      });
     } catch (e) {
       print('Firebase not initialized, auth listener disabled: $e');
       // Set user as null if Firebase is not available
       _firebaseUser.value = null;
+    }
+  }
+
+  // Load user profile from Firestore
+  Future<void> _loadUserProfile(String userId) async {
+    try {
+      print('AuthViewModel: Loading user profile for $userId...');
+      final userProfile = await _authService.getUserProfile(userId);
+      if (userProfile != null) {
+        _userModel.value = userProfile;
+        print('AuthViewModel: User profile loaded successfully');
+      } else {
+        print('AuthViewModel: No user profile found in Firestore');
+        _userModel.value = null;
+      }
+    } catch (e) {
+      print('AuthViewModel: Error loading user profile: $e');
+      _userModel.value = null;
     }
   }
 
@@ -54,11 +99,11 @@ class AuthViewModel extends GetxController {
 
         if (profileExists) {
           print('AuthViewModel: User profile exists, loading profile...');
-          // User has completed profile, load it and go to home
+          // User has completed profile, load it and go to main navigation
           final userProfile = await _authService.getUserProfile(user.uid);
           _userModel.value = userProfile;
-          print('AuthViewModel: Navigating to home view...');
-          Get.offAll(() => const HomeView());
+          print('AuthViewModel: Navigating to main navigation...');
+          Get.offAll(() => const MainNavigationView());
         } else {
           print(
             'AuthViewModel: User needs to complete profile, navigating to profile form...',
@@ -107,7 +152,7 @@ class AuthViewModel extends GetxController {
 
       if (success) {
         _userModel.value = userModel;
-        Get.offAll(() => const HomeView());
+        Get.offAll(() => const MainNavigationView());
         Get.snackbar(
           'Success',
           'Profile created successfully!',
@@ -168,5 +213,10 @@ class AuthViewModel extends GetxController {
   // Clear error message
   void clearError() {
     errorMessage.value = '';
+  }
+
+  // Update user model (for manual profile loading)
+  void updateUserModel(UserModel userModel) {
+    _userModel.value = userModel;
   }
 }

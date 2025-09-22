@@ -23,8 +23,8 @@ class _ProfileFormViewState extends State<ProfileFormView> {
 
   // Form Data
   DateTime? _selectedDob;
-  List<String> _selectedMoodPreferences = [];
-  List<SosContact> _sosContacts = [];
+  final List<String> _selectedMoodPreferences = [];
+  final List<SosContact> _sosContacts = [];
   bool _isPrivate = false;
   bool _darkMode = false;
   String _fontSize = 'medium';
@@ -591,7 +591,7 @@ class _SOSContactDialogState extends State<_SOSContactDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _relation,
+              initialValue: _relation,
               decoration: const InputDecoration(
                 labelText: 'Relation',
                 border: OutlineInputBorder(),

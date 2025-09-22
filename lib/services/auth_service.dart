@@ -123,7 +123,7 @@ class AuthService {
           print('Authentication did not succeed');
         }
 
-        throw credentialError;
+        rethrow;
       }
     } catch (e, stackTrace) {
       print('Google Sign-In failed: $e');
@@ -154,7 +154,7 @@ class AuthService {
       print('Firebase Auth signed out');
     } catch (e) {
       print('Error signing out: $e');
-      throw e; // Re-throw to let the calling code handle it
+      rethrow; // Re-throw to let the calling code handle it
     }
   }
 

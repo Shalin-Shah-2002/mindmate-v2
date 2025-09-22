@@ -32,6 +32,41 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Posts - community feature rules
+    match /posts/{postId} {
+      // Anyone authenticated can read posts
+      allow read: if request.auth != null;
+      
+      // Only authenticated users can create posts
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.userId;
+      
+      // Only post author can update/delete their posts
+      allow update, delete: if request.auth != null && 
+                           request.auth.uid == resource.data.userId;
+    }
+    
+    // Post subcollections (likes, comments, shares)
+    match /posts/{postId}/{subcollection=**} {
+      // Anyone authenticated can read subcollections
+      allow read: if request.auth != null;
+      
+      // Users can create likes/comments (with proper userId validation)
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.userId;
+      
+      // Users can delete their own likes/comments
+      allow delete: if request.auth != null && 
+                   request.auth.uid == resource.data.userId;
+    }
+    
+    // Reports collection for community safety
+    match /reports/{reportId} {
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.reportedBy;
+      allow read: if false; // Only admins should read reports (implement admin rules later)
+    }
+    
     // Allow authenticated users to read public data they might need
     match /public_data/{document=**} {
       allow read: if request.auth != null;

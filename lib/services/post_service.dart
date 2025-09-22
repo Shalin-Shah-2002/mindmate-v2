@@ -1,0 +1,224 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/post_model.dart';
+
+class PostService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Get current user ID
+  String? get currentUserId => _auth.currentUser?.uid;
+
+  // Create a new post
+  Future<bool> createPost(PostModel post) async {
+    try {
+      if (currentUserId == null) return false;
+
+      await _firestore.collection('posts').add(post.toMap());
+      return true;
+    } catch (e) {
+      print('Error creating post: $e');
+      return false;
+    }
+  }
+
+  // Get all posts (recent first)
+  Future<List<PostModel>> getAllPosts({int limit = 20}) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      print('Error getting posts: $e');
+      return [];
+    }
+  }
+
+  // Get posts by specific user
+  Future<List<PostModel>> getUserPosts(String userId, {int limit = 20}) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('posts')
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      print('Error getting user posts: $e');
+      return [];
+    }
+  }
+
+  // Get posts stream for real-time updates
+  Stream<List<PostModel>> getPostsStream({int limit = 20}) {
+    return _firestore
+        .collection('posts')
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
+  }
+
+  // Like a post
+  Future<bool> likePost(String postId) async {
+    try {
+      if (currentUserId == null) return false;
+
+      final likeRef = _firestore
+          .collection('posts')
+          .doc(postId)
+          .collection('likes')
+          .doc(currentUserId);
+
+      // Check if already liked
+      final likeDoc = await likeRef.get();
+      if (likeDoc.exists) {
+        // Unlike the post
+        await likeRef.delete();
+        await _decrementLikeCount(postId);
+      } else {
+        // Like the post
+        final like = LikeModel(
+          id: currentUserId!,
+          userId: currentUserId!,
+          createdAt: DateTime.now(),
+        );
+        await likeRef.set(like.toMap());
+        await _incrementLikeCount(postId);
+      }
+      return true;
+    } catch (e) {
+      print('Error liking post: $e');
+      return false;
+    }
+  }
+
+  // Check if current user liked a post
+  Future<bool> isPostLiked(String postId) async {
+    try {
+      if (currentUserId == null) return false;
+
+      final likeDoc = await _firestore
+          .collection('posts')
+          .doc(postId)
+          .collection('likes')
+          .doc(currentUserId)
+          .get();
+
+      return likeDoc.exists;
+    } catch (e) {
+      print('Error checking if post is liked: $e');
+      return false;
+    }
+  }
+
+  // Add comment to post
+  Future<bool> addComment(String postId, String content) async {
+    try {
+      if (currentUserId == null) return false;
+
+      final comment = CommentModel(
+        id: '',
+        userId: currentUserId!,
+        content: content,
+        createdAt: DateTime.now(),
+      );
+
+      await _firestore
+          .collection('posts')
+          .doc(postId)
+          .collection('comments')
+          .add(comment.toMap());
+
+      await _incrementCommentCount(postId);
+      return true;
+    } catch (e) {
+      print('Error adding comment: $e');
+      return false;
+    }
+  }
+
+  // Get comments for a post
+  Future<List<CommentModel>> getPostComments(String postId) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('posts')
+          .doc(postId)
+          .collection('comments')
+          .orderBy('createdAt', descending: false)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => CommentModel.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      print('Error getting comments: $e');
+      return [];
+    }
+  }
+
+  // Delete a post (only by owner)
+  Future<bool> deletePost(String postId, String postUserId) async {
+    try {
+      if (currentUserId == null || currentUserId != postUserId) return false;
+
+      await _firestore.collection('posts').doc(postId).delete();
+      return true;
+    } catch (e) {
+      print('Error deleting post: $e');
+      return false;
+    }
+  }
+
+  // Report a post
+  Future<bool> reportPost(String postId, String reason) async {
+    try {
+      if (currentUserId == null) return false;
+
+      await _firestore.collection('reports').add({
+        'postId': postId,
+        'reportedBy': currentUserId,
+        'reason': reason,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return true;
+    } catch (e) {
+      print('Error reporting post: $e');
+      return false;
+    }
+  }
+
+  // Private helper methods
+  Future<void> _incrementLikeCount(String postId) async {
+    await _firestore.collection('posts').doc(postId).update({
+      'likesCount': FieldValue.increment(1),
+    });
+  }
+
+  Future<void> _decrementLikeCount(String postId) async {
+    await _firestore.collection('posts').doc(postId).update({
+      'likesCount': FieldValue.increment(-1),
+    });
+  }
+
+  Future<void> _incrementCommentCount(String postId) async {
+    await _firestore.collection('posts').doc(postId).update({
+      'commentsCount': FieldValue.increment(1),
+    });
+  }
+}
