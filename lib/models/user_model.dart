@@ -1,4 +1,4 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SosContact {
   final String name;
@@ -80,23 +80,54 @@ class UserModel {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
+    DateTime _parseDate(dynamic value) {
+      try {
+        if (value == null) return DateTime.now();
+        if (value is Timestamp) return value.toDate();
+        if (value is DateTime) return value;
+        if (value is String && value.isNotEmpty) return DateTime.parse(value);
+        return DateTime.now();
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
+    String _string(
+      Map<String, dynamic> m,
+      List<String> keys, {
+      String def = '',
+    }) {
+      for (final k in keys) {
+        final v = m[k];
+        if (v is String && v.isNotEmpty) return v;
+      }
+      return def;
+    }
+
     return UserModel(
       id: id,
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      photoUrl: map['photoUrl'] ?? '',
-      bio: map['bio'] ?? '',
-      dob: map['dob'] != null ? DateTime.parse(map['dob']) : DateTime.now(),
-      moodPreferences: List<String>.from(map['moodPreferences'] ?? []),
-      createdAt: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'])
-          : DateTime.now(),
+      name: _string(map, ['name', 'displayName', 'fullName', 'username']),
+      email: _string(map, ['email']),
+      photoUrl: _string(map, [
+        'photoUrl',
+        'photoURL',
+        'avatarUrl',
+        'profilePhotoUrl',
+        'imageUrl',
+      ]),
+      bio: _string(map, ['bio']),
+      dob: _parseDate(map['dob']),
+      moodPreferences: List<String>.from(map['moodPreferences'] ?? const []),
+      createdAt: _parseDate(map['createdAt']),
       followers: List<String>.from(map['followers'] ?? []),
       following: List<String>.from(map['following'] ?? []),
       isPrivate: map['isPrivate'] ?? false,
-      sosContacts: (map['sosContacts'] as List<dynamic>? ?? [])
-          .map((e) => SosContact.fromMap(e as Map<String, dynamic>))
-          .toList(),
+      sosContacts: (map['sosContacts'] is List)
+          ? (map['sosContacts'] as List)
+                .whereType<Map<String, dynamic>>()
+                .map(SosContact.fromMap)
+                .toList()
+          : const <SosContact>[],
       settings: map['settings'] != null
           ? UserSettings.fromMap(map['settings'] as Map<String, dynamic>)
           : UserSettings(

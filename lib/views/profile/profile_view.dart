@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/community_viewmodel.dart';
 import '../../viewmodels/navigation_viewmodel.dart';
+import '../../services/social_service.dart';
+import '../settings_view.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -61,383 +63,202 @@ class ProfileView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          children: [
-                            // Profile Picture with enhanced design
-                            Stack(
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white.withOpacity(0.3),
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: 60,
-                                    backgroundImage:
-                                        authController
-                                            .userModel!
-                                            .photoUrl
-                                            .isNotEmpty
-                                        ? NetworkImage(
-                                            authController.userModel!.photoUrl,
-                                          )
-                                        : null,
-                                    backgroundColor: Colors.white,
-                                    child:
-                                        authController
-                                            .userModel!
-                                            .photoUrl
-                                            .isEmpty
-                                        ? const Icon(
-                                            Icons.person,
-                                            size: 60,
-                                            color: Color(0xFF6366F1),
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.camera_alt,
-                                      size: 20,
-                                      color: Color(0xFF6366F1),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Name and Bio with enhanced styling
-                            Text(
-                              authController.userModel!.name,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                authController.userModel!.bio.isNotEmpty
-                                    ? authController.userModel!.bio
-                                    : 'Your mental wellness journey starts here ✨',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Quick Stats Row
-                    _buildQuickStatsRow(),
-                    const SizedBox(height: 24),
-
-                    // Focus Areas with enhanced design
-                    if (authController
-                        .userModel!
-                        .moodPreferences
-                        .isNotEmpty) ...[
-                      _buildEnhancedSectionCard(
-                        'Focus Areas',
-                        Icons.psychology_outlined,
-                        const Color(0xFF8B5CF6),
-                        Column(
-                          children: [
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: authController
-                                  .userModel!
-                                  .moodPreferences
-                                  .map(
-                                    (pref) => Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
+                                // Profile Picture with enhanced design
+                                Stack(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            const Color(
-                                              0xFF8B5CF6,
-                                            ).withOpacity(0.1),
-                                            const Color(
-                                              0xFF6366F1,
-                                            ).withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withOpacity(0.3),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 60,
+                                        backgroundImage:
+                                            authController
+                                                .userModel!
+                                                .photoUrl
+                                                .isNotEmpty
+                                            ? NetworkImage(
+                                                authController
+                                                    .userModel!
+                                                    .photoUrl,
+                                              )
+                                            : null,
+                                        backgroundColor: Colors.white,
+                                        child:
+                                            authController
+                                                .userModel!
+                                                .photoUrl
+                                                .isEmpty
+                                            ? const Icon(
+                                                Icons.person,
+                                                size: 60,
+                                                color: Color(0xFF6366F1),
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.1,
+                                              ),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
                                           ],
                                         ),
-                                        borderRadius: BorderRadius.circular(25),
-                                        border: Border.all(
-                                          color: const Color(
-                                            0xFF8B5CF6,
-                                          ).withOpacity(0.3),
+                                        child: const Icon(
+                                          Icons.camera_alt,
+                                          size: 20,
+                                          color: Color(0xFF6366F1),
                                         ),
                                       ),
-                                      child: Text(
-                                        pref,
-                                        style: const TextStyle(
-                                          color: Color(0xFF8B5CF6),
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-
-                    // Enhanced Progress Section
-                    _buildEnhancedSectionCard(
-                      'Your Wellness Journey',
-                      Icons.trending_up,
-                      const Color(0xFF10B981),
-                      Column(
-                        children: [
-                          _buildProgressItem(
-                            'Days Active',
-                            '15',
-                            Icons.calendar_today,
-                            const Color(0xFF10B981),
-                            0.75,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildProgressItem(
-                            'AI Conversations',
-                            '8',
-                            Icons.chat_bubble_outline,
-                            const Color(0xFF6366F1),
-                            0.4,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildProgressItem(
-                            'Community Posts',
-                            '3',
-                            Icons.group,
-                            const Color(0xFFEC4899),
-                            0.15,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildProgressItem(
-                            'Mood Entries',
-                            '12',
-                            Icons.mood,
-                            const Color(0xFFF59E0B),
-                            0.6,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Enhanced My Posts Section
-                    _buildMyPostsSection(),
-
-                    const SizedBox(height: 20),
-
-                    // Enhanced Settings Section
-                    _buildEnhancedSectionCard(
-                      'Settings & Privacy',
-                      Icons.settings,
-                      const Color(0xFF6B7280),
-                      Column(
-                        children: [
-                          _buildEnhancedSettingItem(
-                            'Edit Profile',
-                            'Update your personal information',
-                            Icons.edit_outlined,
-                            const Color(0xFF6366F1),
-                            () {
-                              Get.snackbar(
-                                'Coming Soon',
-                                'Profile editing will be available soon!',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.blue.withOpacity(0.1),
-                                colorText: Colors.blue[700],
-                              );
-                            },
-                          ),
-                          _buildEnhancedSettingItem(
-                            'Privacy Settings',
-                            'Control your data and visibility',
-                            Icons.privacy_tip_outlined,
-                            const Color(0xFF8B5CF6),
-                            () {
-                              Get.snackbar(
-                                'Coming Soon',
-                                'Privacy settings will be available soon!',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.purple.withOpacity(0.1),
-                                colorText: Colors.purple[700],
-                              );
-                            },
-                          ),
-                          _buildEnhancedSettingItem(
-                            'Notifications',
-                            'Manage your notification preferences',
-                            Icons.notifications_outlined,
-                            const Color(0xFFF59E0B),
-                            () {
-                              Get.snackbar(
-                                'Coming Soon',
-                                'Notification settings will be available soon!',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.orange.withOpacity(0.1),
-                                colorText: Colors.orange[700],
-                              );
-                            },
-                          ),
-                          _buildEnhancedSettingItem(
-                            'Emergency Contacts',
-                            'Set up your support network',
-                            Icons.emergency_outlined,
-                            const Color(0xFFEF4444),
-                            () {
-                              Get.snackbar(
-                                'Coming Soon',
-                                'Emergency contacts management will be available soon!',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.red.withOpacity(0.1),
-                                colorText: Colors.red[700],
-                              );
-                            },
-                          ),
-                          const Divider(height: 32),
-                          _buildEnhancedSettingItem(
-                            'Sign Out',
-                            'Sign out from your account',
-                            Icons.logout,
-                            const Color(0xFFEF4444),
-                            () {
-                              Get.dialog(
-                                AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  title: const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.logout,
-                                        color: Color(0xFFEF4444),
-                                      ),
-                                      SizedBox(width: 12),
-                                      Text('Sign Out'),
-                                    ],
-                                  ),
-                                  content: const Text(
-                                    'Are you sure you want to sign out of your account?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Get.back(),
-                                      child: Text(
-                                        'Cancel',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        Get.back();
-                                        authController.signOut();
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(
-                                          0xFFEF4444,
-                                        ),
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                      ),
-                                      child: const Text('Sign Out'),
                                     ),
                                   ],
                                 ),
-                              );
-                            },
-                            isDestructive: true,
-                          ),
-                        ],
-                      ),
-                    ),
+                                const SizedBox(height: 24),
+                                // Name and Bio with enhanced styling
+                                Text(
+                                  authController.userModel!.name,
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    authController.userModel!.bio.isNotEmpty
+                                        ? authController.userModel!.bio
+                                        : 'Your mental wellness journey starts here ✨',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
 
-                    const SizedBox(height: 32),
+                                // Followers and Following counts
+                                Obx(() {
+                                  if (authController.userModel == null) {
+                                    return const SizedBox.shrink();
+                                  }
 
-                    // App Info with enhanced styling
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[200]!),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.psychology,
-                            size: 20,
-                            color: Color(0xFF6366F1),
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildSocialMetric(
+                                          authController
+                                              .userModel!
+                                              .followers
+                                              .length
+                                              .toString(),
+                                          'Followers',
+                                          Icons.people_outline,
+                                          onTap: () {
+                                            final socialService =
+                                                SocialService();
+                                            socialService.showFollowersList();
+                                          },
+                                        ),
+                                        Container(
+                                          height: 40,
+                                          width: 1,
+                                          color: Colors.white.withOpacity(0.3),
+                                        ),
+                                        _buildSocialMetric(
+                                          authController
+                                              .userModel!
+                                              .following
+                                              .length
+                                              .toString(),
+                                          'Following',
+                                          Icons.person_add_outlined,
+                                          onTap: () {
+                                            final socialService =
+                                                SocialService();
+                                            socialService.showFollowingList();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'MindMate v1.0.0 - Your Mental Health Companion',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                          // Settings icon at top-right (painted above content)
+                          Positioned(
+                            top: 50,
+                            right: 12,
+                            child: Material(
+                              color: Colors.white.withOpacity(0.25),
+                              shape: const CircleBorder(),
+                              elevation: 0,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.settings,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Get.to(() => const SettingsView());
+                                },
+                                tooltip: 'Settings',
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 24),
+
+                    // My Posts Section
+                    _buildMyPostsSection(),
                   ],
                 );
               } else if (authController.user != null &&
@@ -605,99 +426,6 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStatsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildQuickStatCard(
-            'Posts',
-            '3',
-            Icons.article,
-            const Color(0xFFEC4899),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildQuickStatCard(
-            'Likes',
-            '24',
-            Icons.favorite,
-            const Color(0xFFEF4444),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildQuickStatCard(
-            'Days',
-            '15',
-            Icons.calendar_today,
-            const Color(0xFF10B981),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildQuickStatCard(
-            'Level',
-            '2',
-            Icons.star,
-            const Color(0xFFF59E0B),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEnhancedSectionCard(
     String title,
     IconData icon,
@@ -746,114 +474,6 @@ class ProfileView extends StatelessWidget {
           const SizedBox(height: 20),
           content,
         ],
-      ),
-    );
-  }
-
-  Widget _buildProgressItem(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-    double progress,
-  ) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 20, color: color),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF374151),
-                    ),
-                  ),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: progress,
-                backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-                minHeight: 6,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEnhancedSettingItem(
-    String title,
-    String subtitle,
-    IconData icon,
-    Color color,
-    VoidCallback onTap, {
-    bool isDestructive = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: Colors.grey[50],
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isDestructive
-                ? Colors.red.withOpacity(0.1)
-                : color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: isDestructive ? Colors.red : color,
-          ),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: isDestructive ? Colors.red : const Color(0xFF374151),
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: Colors.grey[400],
-        ),
-        onTap: onTap,
       ),
     );
   }
@@ -1173,5 +793,58 @@ class ProfileView extends StatelessWidget {
     } else {
       return '${difference.inDays}d ago';
     }
+  }
+
+  Widget _buildSocialMetric(
+    String count,
+    String label,
+    IconData icon, {
+    VoidCallback? onTap,
+  }) {
+    Widget content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: Colors.white.withOpacity(0.9)),
+            const SizedBox(width: 6),
+            Text(
+              count,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.8),
+          ),
+        ),
+      ],
+    );
+
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.transparent,
+          ),
+          child: content,
+        ),
+      );
+    }
+
+    return content;
   }
 }

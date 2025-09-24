@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'views/splash_view.dart';
+import 'viewmodels/theme_viewmodel.dart';
+import 'config/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,14 +28,18 @@ class MindMateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'MindMate',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const SplashView(),
-      debugShowCheckedModeBanner: false,
+    final themeController = Get.put(ThemeViewModel(), permanent: true);
+    return GetBuilder<ThemeViewModel>(
+      builder: (_) {
+        return GetMaterialApp(
+          title: 'MindMate',
+          themeMode: themeController.themeMode,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          home: const SplashView(),
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

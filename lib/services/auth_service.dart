@@ -172,7 +172,20 @@ class AuthService {
   // Save user profile to Firestore
   Future<bool> saveUserProfile(UserModel user) async {
     try {
-      await _firestore.collection('users').doc(user.id).set(user.toMap());
+      final data = user.toMap();
+      // Add normalized fields to support efficient search
+      data['nameLower'] = (user.name).toLowerCase();
+      data['emailLower'] = (user.email).toLowerCase();
+      // Also store displayNameLower for compatibility with older docs
+      data['displayNameLower'] =
+          (data['displayName'] is String &&
+              (data['displayName'] as String).isNotEmpty)
+          ? (data['displayName'] as String).toLowerCase()
+          : (user.name).toLowerCase();
+      await _firestore
+          .collection('users')
+          .doc(user.id)
+          .set(data, SetOptions(merge: true));
       return true;
     } catch (e) {
       print('Error saving user profile: $e');
@@ -191,6 +204,149 @@ class AuthService {
     } catch (e) {
       print('Error getting user profile: $e');
       return null;
+    }
+  }
+
+  // Follow a user
+  Future<bool> followUser(String currentUserId, String targetUserId) async {
+    try {
+      final batch = _firestore.batch();
+
+      // Add targetUserId to current user's following list
+      final currentUserRef = _firestore.collection('users').doc(currentUserId);
+      batch.update(currentUserRef, {
+        'following': FieldValue.arrayUnion([targetUserId]),
+      });
+
+      // Add currentUserId to target user's followers list
+      final targetUserRef = _firestore.collection('users').doc(targetUserId);
+      batch.update(targetUserRef, {
+        'followers': FieldValue.arrayUnion([currentUserId]),
+      });
+
+      await batch.commit();
+      return true;
+    } catch (e) {
+      print('Error following user: $e');
+      return false;
+    }
+  }
+
+  // Unfollow a user
+  Future<bool> unfollowUser(String currentUserId, String targetUserId) async {
+    try {
+      final batch = _firestore.batch();
+
+      // Remove targetUserId from current user's following list
+      final currentUserRef = _firestore.collection('users').doc(currentUserId);
+      batch.update(currentUserRef, {
+        'following': FieldValue.arrayRemove([targetUserId]),
+      });
+
+      // Remove currentUserId from target user's followers list
+      final targetUserRef = _firestore.collection('users').doc(targetUserId);
+      batch.update(targetUserRef, {
+        'followers': FieldValue.arrayRemove([currentUserId]),
+      });
+
+      await batch.commit();
+      return true;
+    } catch (e) {
+      print('Error unfollowing user: $e');
+      return false;
+    }
+  }
+
+  // Check if current user is following target user
+  Future<bool> isFollowing(String currentUserId, String targetUserId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(currentUserId).get();
+      if (doc.exists && doc.data() != null) {
+        final following = List<String>.from(doc.data()!['following'] ?? []);
+        return following.contains(targetUserId);
+      }
+      return false;
+    } catch (e) {
+      print('Error checking follow status: $e');
+      return false;
+    }
+  }
+
+  // Get followers list for a user
+  Future<List<UserModel>> getFollowers(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      if (doc.exists && doc.data() != null) {
+        final followerIds = List<String>.from(doc.data()!['followers'] ?? []);
+
+        if (followerIds.isEmpty) return [];
+
+        final followers = <UserModel>[];
+        for (final followerId in followerIds) {
+          final follower = await getUserProfile(followerId);
+          if (follower != null) {
+            followers.add(follower);
+          }
+        }
+        return followers;
+      }
+      return [];
+    } catch (e) {
+      print('Error getting followers: $e');
+      return [];
+    }
+  }
+
+  // Get following list for a user
+  Future<List<UserModel>> getFollowing(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      if (doc.exists && doc.data() != null) {
+        final followingIds = List<String>.from(doc.data()!['following'] ?? []);
+
+        if (followingIds.isEmpty) return [];
+
+        final following = <UserModel>[];
+        for (final followingId in followingIds) {
+          final user = await getUserProfile(followingId);
+          if (user != null) {
+            following.add(user);
+          }
+        }
+        return following;
+      }
+      return [];
+    } catch (e) {
+      print('Error getting following: $e');
+      return [];
+    }
+  }
+
+  // Update user's social data (for testing/development)
+  Future<bool> updateUserSocialData(
+    String userId, {
+    List<String>? followers,
+    List<String>? following,
+  }) async {
+    try {
+      final Map<String, dynamic> updateData = {};
+
+      if (followers != null) {
+        updateData['followers'] = followers;
+      }
+
+      if (following != null) {
+        updateData['following'] = following;
+      }
+
+      if (updateData.isNotEmpty) {
+        await _firestore.collection('users').doc(userId).update(updateData);
+      }
+
+      return true;
+    } catch (e) {
+      print('Error updating user social data: $e');
+      return false;
     }
   }
 }

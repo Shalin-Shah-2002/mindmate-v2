@@ -291,6 +291,11 @@ class CommunityViewModel extends GetxController {
     }
   }
 
+  // Real-time comments stream
+  Stream<List<CommentModel>> commentsStream(String postId) {
+    return _postService.getPostCommentsStream(postId);
+  }
+
   // Delete post
   Future<void> deletePost(String postId, String postUserId, int index) async {
     try {

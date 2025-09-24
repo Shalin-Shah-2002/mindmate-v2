@@ -41,9 +41,22 @@ service cloud.firestore {
       allow create: if request.auth != null && 
                    request.auth.uid == request.resource.data.userId;
       
-      // Only post author can update/delete their posts
-      allow update, delete: if request.auth != null && 
-                           request.auth.uid == resource.data.userId;
+      // Update/delete rules:
+      // - Post author can update/delete their own post
+      // - Any authenticated user may update ONLY likesCount (±1) or commentsCount (+1)
+      allow update: if request.auth != null && (
+        // Author full control
+        request.auth.uid == resource.data.userId ||
+
+        // Allow updates that change ONLY likesCount
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['likesCount']) ||
+
+        // Allow updates that change ONLY commentsCount
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['commentsCount'])
+      );
+
+      // Only author can delete the post
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
     // Post subcollections (likes, comments, shares)

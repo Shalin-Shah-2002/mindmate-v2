@@ -351,6 +351,21 @@ class PostService {
     }
   }
 
+  // Real-time comments stream for a post (ascending by createdAt)
+  Stream<List<CommentModel>> getPostCommentsStream(String postId) {
+    return _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => CommentModel.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
+  }
+
   // Delete a post (only by owner)
   Future<bool> deletePost(String postId, String postUserId) async {
     try {
