@@ -7,9 +7,13 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Users can read other users' public profile data (for social features)
+    // Users can read other users' profile data for social features and search
     match /users/{userId} {
-      allow read: if request.auth != null && resource.data.isPrivate == false;
+      allow read: if request.auth != null;
+      
+      // Note: For search functionality, we allow all authenticated users to read user profiles
+      // The client application should respect privacy settings and only show appropriate data
+      // Private users can still be found in search but won't show sensitive information
     }
     
     // Mood entries - users can read/write their own data

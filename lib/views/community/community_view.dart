@@ -5,6 +5,7 @@ import '../../models/post_model.dart';
 import 'widgets/group_card.dart';
 import 'widgets/empty_state.dart';
 import 'widgets/post_card.dart';
+import 'widgets/user_search_card.dart';
 
 class CommunityView extends StatelessWidget {
   const CommunityView({super.key});
@@ -69,295 +70,215 @@ class CommunityView extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Search bar
-                Obx(() {
-                  final hasQuery = controller.searchQuery.value
-                      .trim()
-                      .isNotEmpty;
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
-                    ),
-                    child: TextField(
-                      onChanged: controller.updateSearchQuery,
-                      decoration: InputDecoration(
-                        hintText: 'Search people or posts',
-                        hintStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: hasQuery
-                            ? IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: controller.clearSearch,
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+                // Search Bar
+                _buildSearchBar(controller),
 
-                const SizedBox(height: 12),
-
-                // Search results (People and Posts sections)
+                // Search Results
                 Obx(() {
                   if (!controller.showSearchResults.value) {
                     return const SizedBox.shrink();
                   }
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (controller.isSearching.value)
-                        const LinearProgressIndicator(minHeight: 2),
-                      const SizedBox(height: 8),
-
-                      const Text(
-                        'People',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2C3E50),
+                  return Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (controller.searchUsersResults.isEmpty &&
-                          !controller.isSearching.value)
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            'No users found',
-                            style: TextStyle(color: Colors.grey[600]),
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.people,
+                                color: Theme.of(context).primaryColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Search Results',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF2C3E50),
+                                ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 20),
+                                onPressed: () => controller.hideSearchResults(),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
                           ),
-                        )
-                      else
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: controller.searchUsersResults.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
-                          itemBuilder: (context, i) {
-                            final user = controller.searchUsersResults[i];
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.grey[200],
-                                backgroundImage: (user.photoUrl.isNotEmpty)
-                                    ? NetworkImage(user.photoUrl)
-                                    : null,
-                                child: user.photoUrl.isEmpty
-                                    ? const Icon(
-                                        Icons.person,
-                                        color: Colors.grey,
-                                      )
-                                    : null,
-                              ),
-                              title: Text(
-                                user.name.isNotEmpty ? user.name : user.email,
-                              ),
-                              subtitle: Text(user.email),
-                              onTap: () {
-                                controller.clearSearch();
-                              },
-                            );
-                          },
                         ),
-
-                      const SizedBox(height: 16),
-
-                      const Text(
-                        'Posts',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2C3E50),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (controller.searchPostsResults.isEmpty &&
-                          !controller.isSearching.value)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            'No posts found',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        )
-                      else
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: controller.searchPostsResults.length,
-                          itemBuilder: (context, i) {
-                            final post = controller.searchPostsResults[i];
-                            return Container(
-                              padding: const EdgeInsets.all(12),
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[200]!),
-                              ),
-                              child: Row(
+                        const Divider(height: 1),
+                        if (controller.isSearching.value)
+                          const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (controller.searchResults.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Center(
+                              child: Column(
                                 children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage:
-                                        (post.profilePhotoUrl.isNotEmpty)
-                                        ? NetworkImage(post.profilePhotoUrl)
-                                        : null,
-                                    child: post.profilePhotoUrl.isEmpty
-                                        ? const Icon(
-                                            Icons.person,
-                                            size: 18,
-                                            color: Colors.grey,
-                                          )
-                                        : null,
+                                  Icon(
+                                    Icons.person_search,
+                                    size: 48,
+                                    color: Colors.grey[400],
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          post.isAnonymous
-                                              ? 'Anonymous User'
-                                              : (post.authorName.isNotEmpty
-                                                    ? post.authorName
-                                                    : (post.userName.isNotEmpty
-                                                          ? post.userName
-                                                          : 'Community Member')),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          post.content,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.grey[700],
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No users found',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Try searching with a different name',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[500],
                                     ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
-                        ),
-                    ],
+                            ),
+                          )
+                        else
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 300),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: controller.searchResults.length,
+                              itemBuilder: (context, index) {
+                                final user = controller.searchResults[index];
+                                return UserSearchCard(
+                                  user: user,
+                                  onTap: () {
+                                    // TODO: Navigate to user profile
+                                    Get.snackbar(
+                                      'User Selected',
+                                      'Tapped on ${user.name}',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                    );
+                                    controller.hideSearchResults();
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
                   );
                 }),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
-                // Default content (hidden while searching)
-                Obx(() {
-                  if (controller.showSearchResults.value) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Support Groups',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2C3E50),
-                        ),
+                // Main content
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Support Groups',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF2C3E50),
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 120,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: const [
-                            GroupCard(
-                              title: 'Anxiety Support',
-                              icon: Icons.psychology_outlined,
-                              color: Color(0xFF6366F1),
-                              memberCount: '2.3k members',
-                            ),
-                            GroupCard(
-                              title: 'Depression Help',
-                              icon: Icons.favorite_outline,
-                              color: Color(0xFFEC4899),
-                              memberCount: '1.8k members',
-                            ),
-                            GroupCard(
-                              title: 'Exam Stress',
-                              icon: Icons.school_outlined,
-                              color: Color(0xFFF59E0B),
-                              memberCount: '1.2k members',
-                            ),
-                            GroupCard(
-                              title: 'General Chat',
-                              icon: Icons.chat_outlined,
-                              color: Color(0xFF10B981),
-                              memberCount: '3.1k members',
-                            ),
-                            GroupCard(
-                              title: 'Self Care',
-                              icon: Icons.spa_outlined,
-                              color: Color(0xFF8B5CF6),
-                              memberCount: '956 members',
-                            ),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 120,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: const [
+                          GroupCard(
+                            title: 'Anxiety Support',
+                            icon: Icons.psychology_outlined,
+                            color: Color(0xFF6366F1),
+                            memberCount: '2.3k members',
+                          ),
+                          GroupCard(
+                            title: 'Depression Help',
+                            icon: Icons.favorite_outline,
+                            color: Color(0xFFEC4899),
+                            memberCount: '1.8k members',
+                          ),
+                          GroupCard(
+                            title: 'Exam Stress',
+                            icon: Icons.school_outlined,
+                            color: Color(0xFFF59E0B),
+                            memberCount: '1.2k members',
+                          ),
+                          GroupCard(
+                            title: 'General Chat',
+                            icon: Icons.chat_outlined,
+                            color: Color(0xFF10B981),
+                            memberCount: '3.1k members',
+                          ),
+                          GroupCard(
+                            title: 'Self Care',
+                            icon: Icons.spa_outlined,
+                            color: Color(0xFF8B5CF6),
+                            memberCount: '956 members',
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Recent Posts',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2C3E50),
-                        ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Recent Posts',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF2C3E50),
                       ),
-                      const SizedBox(height: 16),
-                      Obx(() {
-                        if (controller.isLoading.value) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (controller.posts.isEmpty) {
-                          return EmptyState(
-                            onCreate: () => _showCreatePostDialog(controller),
-                          );
-                        }
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: controller.posts.length,
-                          itemBuilder: (context, index) {
-                            final post = controller.posts[index];
-                            return PostCard(
-                              controller: controller,
-                              post: post,
-                              index: index,
-                              onShowComments: _showCommentsDialog,
-                            );
-                          },
+                    ),
+                    const SizedBox(height: 16),
+                    Obx(() {
+                      if (controller.isLoading.value) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (controller.posts.isEmpty) {
+                        return EmptyState(
+                          onCreate: () => _showCreatePostDialog(controller),
                         );
-                      }),
-                      const SizedBox(height: 20),
-                    ],
-                  );
-                }),
+                      }
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: controller.posts.length,
+                        itemBuilder: (context, index) {
+                          final post = controller.posts[index];
+                          return PostCard(
+                            controller: controller,
+                            post: post,
+                            index: index,
+                            onShowComments: _showCommentsDialog,
+                          );
+                        },
+                      );
+                    }),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ],
             ),
           ),
@@ -843,4 +764,57 @@ class CommunityView extends StatelessWidget {
   }
 
   // Time formatting moved to PostCard widget if needed.
+
+  Widget _buildSearchBar(CommunityViewModel controller) {
+    final TextEditingController searchController = TextEditingController();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: searchController,
+        onChanged: (query) {
+          if (query.isEmpty) {
+            controller.clearSearch();
+          } else {
+            controller.searchUsers(query);
+          }
+        },
+        onTap: () => controller.showSearchResultsAgain(),
+        decoration: InputDecoration(
+          hintText: 'Search users by name...',
+          hintStyle: TextStyle(color: Colors.grey[500]),
+          prefixIcon: Icon(
+            Icons.search,
+            color: Theme.of(Get.context!).primaryColor,
+          ),
+          suffixIcon: Obx(
+            () => controller.searchQuery.value.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    onPressed: () {
+                      searchController.clear();
+                      controller.clearSearch();
+                    },
+                  )
+                : const SizedBox.shrink(),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+      ),
+    );
+  }
 }

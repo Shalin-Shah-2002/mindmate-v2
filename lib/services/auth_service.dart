@@ -182,6 +182,14 @@ class AuthService {
               (data['displayName'] as String).isNotEmpty)
           ? (data['displayName'] as String).toLowerCase()
           : (user.name).toLowerCase();
+      // Best-effort usernameLower (if your app uses usernames on profile docs)
+      if (data['username'] is String &&
+          (data['username'] as String).toString().isNotEmpty) {
+        data['usernameLower'] = (data['username'] as String).toLowerCase();
+      } else {
+        // fallback to name as usernameLower for search compatibility
+        data['usernameLower'] = (user.name).toLowerCase();
+      }
       await _firestore
           .collection('users')
           .doc(user.id)

@@ -43,8 +43,13 @@ class PostService {
                 .toString();
         data['authorName'] = name;
         data['userName'] = name;
+        // Lowercased mirrors to support indexed search
+        data['authorNameLower'] = name.toLowerCase();
+        data['userNameLower'] = name.toLowerCase();
         data['profilePhotoUrl'] = photoUrl;
       }
+      // Always store contentLower for search
+      data['contentLower'] = (post.content).toLowerCase();
 
       await _firestore.collection('posts').add(data);
       return true;

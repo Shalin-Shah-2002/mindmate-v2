@@ -70,7 +70,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '233819739459',
     projectId: 'mindmate-9f6d3',
     storageBucket: 'mindmate-9f6d3.firebasestorage.app',
-    iosClientId: '233819739459-7a56tc1ojhmls16qi05p6snoqk74ucmu.apps.googleusercontent.com',
+    iosClientId:
+        '233819739459-7a56tc1ojhmls16qi05p6snoqk74ucmu.apps.googleusercontent.com',
     iosBundleId: 'com.example.mindmate',
   );
 }
