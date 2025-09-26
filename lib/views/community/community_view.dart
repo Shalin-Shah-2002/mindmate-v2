@@ -5,7 +5,7 @@ import '../../models/post_model.dart';
 import 'widgets/group_card.dart';
 import 'widgets/empty_state.dart';
 import 'widgets/post_card.dart';
-import 'widgets/user_search_card.dart';
+import '../search/search_results_view.dart';
 
 class CommunityView extends StatelessWidget {
   const CommunityView({super.key});
@@ -72,122 +72,6 @@ class CommunityView extends StatelessWidget {
 
                 // Search Bar
                 _buildSearchBar(controller),
-
-                // Search Results
-                Obx(() {
-                  if (!controller.showSearchResults.value) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return Container(
-                    margin: const EdgeInsets.only(top: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.people,
-                                color: Theme.of(context).primaryColor,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Search Results',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF2C3E50),
-                                ),
-                              ),
-                              const Spacer(),
-                              IconButton(
-                                icon: const Icon(Icons.close, size: 20),
-                                onPressed: () => controller.hideSearchResults(),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        if (controller.isSearching.value)
-                          const Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else if (controller.searchResults.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.person_search,
-                                    size: 48,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No users found',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Try searching with a different name',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 300),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: controller.searchResults.length,
-                              itemBuilder: (context, index) {
-                                final user = controller.searchResults[index];
-                                return UserSearchCard(
-                                  user: user,
-                                  onTap: () {
-                                    // TODO: Navigate to user profile
-                                    Get.snackbar(
-                                      'User Selected',
-                                      'Tapped on ${user.name}',
-                                      snackPosition: SnackPosition.BOTTOM,
-                                    );
-                                    controller.hideSearchResults();
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                }),
 
                 const SizedBox(height: 16),
 
@@ -766,52 +650,38 @@ class CommunityView extends StatelessWidget {
   // Time formatting moved to PostCard widget if needed.
 
   Widget _buildSearchBar(CommunityViewModel controller) {
-    final TextEditingController searchController = TextEditingController();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: searchController,
-        onChanged: (query) {
-          if (query.isEmpty) {
-            controller.clearSearch();
-          } else {
-            controller.searchUsers(query);
-          }
-        },
-        onTap: () => controller.showSearchResultsAgain(),
-        decoration: InputDecoration(
-          hintText: 'Search users by name...',
-          hintStyle: TextStyle(color: Colors.grey[500]),
-          prefixIcon: Icon(
-            Icons.search,
-            color: Theme.of(Get.context!).primaryColor,
-          ),
-          suffixIcon: Obx(
-            () => controller.searchQuery.value.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.grey),
-                    onPressed: () {
-                      searchController.clear();
-                      controller.clearSearch();
-                    },
-                  )
-                : const SizedBox.shrink(),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+    return GestureDetector(
+      onTap: () {
+        // Navigate to search results page with smooth transition
+        Get.to(
+          () => const SearchResultsView(),
+          transition: Transition.rightToLeft,
+          duration: const Duration(milliseconds: 300),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Theme.of(Get.context!).primaryColor),
+              const SizedBox(width: 12),
+              Text(
+                'Search users by name...',
+                style: TextStyle(color: Colors.grey[500], fontSize: 16),
+              ),
+            ],
           ),
         ),
       ),

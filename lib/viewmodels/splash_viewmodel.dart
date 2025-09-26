@@ -8,43 +8,61 @@ import '../viewmodels/auth_viewmodel.dart';
 class SplashViewModel extends GetxController {
   final AuthService _authService = AuthService();
 
-  @override
-  void onInit() {
-    super.onInit();
-    _initializeApp();
-  }
+  // Reactive variables for splash state
+  final RxBool isInitializing = true.obs;
+  final RxString statusMessage = 'Initializing...'.obs;
 
-  Future<void> _initializeApp() async {
-    // Simulate app initialization
-    await Future.delayed(const Duration(seconds: 2));
+  // No auto-initialization, wait for animation to trigger
 
+  /// Called by splash screen when animation completes
+  Future<void> navigateToNextScreen() async {
     try {
+      statusMessage.value = 'Checking authentication...';
+
       // Check if user is already signed in
       final currentUser = FirebaseAuth.instance.currentUser;
 
       if (currentUser != null) {
+        statusMessage.value = 'Loading profile...';
+
         // User is signed in, check if profile exists
         final profileExists = await _authService.userProfileExists(
           currentUser.uid,
         );
 
         if (profileExists) {
+          statusMessage.value = 'Welcome back!';
+
           // User has complete profile, initialize AuthViewModel and go to main navigation
           Get.put(AuthViewModel());
+
+          // Small delay for smooth transition
+          await Future.delayed(const Duration(milliseconds: 500));
           Get.offAll(() => const MainNavigationView());
         } else {
+          statusMessage.value = 'Setting up profile...';
+
           // User needs to complete profile, but Firebase user exists
-          // This shouldn't normally happen, but let's handle it
+          await Future.delayed(const Duration(milliseconds: 500));
           Get.offAll(() => const LoginView());
         }
       } else {
+        statusMessage.value = 'Ready to start!';
+
         // No user signed in, go to login
+        await Future.delayed(const Duration(milliseconds: 500));
         Get.offAll(() => const LoginView());
       }
     } catch (e) {
       // If Firebase is not initialized or there's an error, go to login
-      print('Error checking auth state: $e');
+      // Log error for debugging
+      // print('Error checking auth state: $e');
+      statusMessage.value = 'Starting fresh...';
+
+      await Future.delayed(const Duration(milliseconds: 500));
       Get.offAll(() => const LoginView());
+    } finally {
+      isInitializing.value = false;
     }
   }
 }

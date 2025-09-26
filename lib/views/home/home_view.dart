@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../search/search_results_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -44,6 +45,40 @@ class HomeView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
+
+            // Search Bar
+            GestureDetector(
+              onTap: () {
+                Get.to(
+                  () => const SearchResultsView(),
+                  transition: Transition.rightToLeft,
+                  duration: const Duration(milliseconds: 300),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: Theme.of(context).primaryColor),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Search for users...',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // User profile section - needs to be reactive
             Obx(() {
               if (authController.userModel != null) {
