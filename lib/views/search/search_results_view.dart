@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/search_viewmodel.dart';
 import '../community/widgets/user_search_card.dart';
+import '../community/widgets/post_search_card.dart';
 
 class SearchResultsView extends StatelessWidget {
   final String? initialQuery;
@@ -17,7 +18,7 @@ class SearchResultsView extends StatelessWidget {
     if (initialQuery != null && initialQuery!.isNotEmpty) {
       textController.text = initialQuery!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        searchController.searchUsers(initialQuery!);
+        searchController.searchAll(initialQuery!);
       });
     }
 
@@ -52,7 +53,7 @@ class SearchResultsView extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       const Text(
-                        'Search Users',
+                        'Search',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -78,16 +79,16 @@ class SearchResultsView extends StatelessWidget {
                         if (query.isEmpty) {
                           searchController.clearSearch();
                         } else {
-                          searchController.searchUsers(query);
+                          searchController.searchAll(query);
                         }
                       },
                       onSubmitted: (query) {
                         if (query.isNotEmpty) {
-                          searchController.searchUsers(query);
+                          searchController.searchAll(query);
                         }
                       },
                       decoration: InputDecoration(
-                        hintText: 'Search users by name...',
+                        hintText: 'Search users and posts...',
                         hintStyle: TextStyle(color: Colors.grey[500]),
                         prefixIcon: Icon(
                           Icons.search,
@@ -115,6 +116,106 @@ class SearchResultsView extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  // Tab bar (only show when there's a search query)
+                  Obx(() {
+                    if (searchController.searchQuery.value.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Container(
+                      margin: const EdgeInsets.only(top: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => searchController.switchTab(0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      searchController.selectedTabIndex.value ==
+                                          0
+                                      ? Theme.of(context).primaryColor
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color:
+                                        searchController
+                                                .selectedTabIndex
+                                                .value ==
+                                            0
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Users (${searchController.userSearchResults.length})',
+                                  style: TextStyle(
+                                    color:
+                                        searchController
+                                                .selectedTabIndex
+                                                .value ==
+                                            0
+                                        ? Colors.white
+                                        : Colors.grey[600],
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => searchController.switchTab(1),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      searchController.selectedTabIndex.value ==
+                                          1
+                                      ? Theme.of(context).primaryColor
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color:
+                                        searchController
+                                                .selectedTabIndex
+                                                .value ==
+                                            1
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Posts (${searchController.postSearchResults.length})',
+                                  style: TextStyle(
+                                    color:
+                                        searchController
+                                                .selectedTabIndex
+                                                .value ==
+                                            1
+                                        ? Colors.white
+                                        : Colors.grey[600],
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -126,82 +227,153 @@ class SearchResultsView extends StatelessWidget {
                   return _buildEmptyState(
                     icon: Icons.search,
                     title: 'Start your search',
-                    subtitle: 'Enter a name to find users in the community',
+                    subtitle:
+                        'Enter keywords to find users and posts in the community',
                   );
                 }
 
-                if (searchController.isSearching.value) {
-                  return const Center(
+                if (searchController.isAnySearching) {
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
                         Text(
-                          'Searching users...',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          searchController.selectedTabIndex.value == 0
+                              ? 'Searching users...'
+                              : 'Searching posts...',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
                   );
                 }
 
-                if (searchController.searchResults.isEmpty) {
-                  return _buildEmptyState(
-                    icon: Icons.person_search,
-                    title: 'No users found',
-                    subtitle:
-                        'Try searching with a different name or check your spelling',
-                  );
+                // Show results based on selected tab
+                if (searchController.selectedTabIndex.value == 0) {
+                  return _buildUsersTab(searchController);
+                } else {
+                  return _buildPostsTab(searchController);
                 }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Results header
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        '${searchController.searchResults.length} result${searchController.searchResults.length == 1 ? '' : 's'} found',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF2C3E50),
-                        ),
-                      ),
-                    ),
-
-                    // Results list
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemCount: searchController.searchResults.length,
-                        itemBuilder: (context, index) {
-                          final user = searchController.searchResults[index];
-                          return UserSearchCard(
-                            user: user,
-                            onTap: () {
-                              // TODO: Navigate to user profile
-                              Get.snackbar(
-                                'User Profile',
-                                'Opening ${user.name}\'s profile...',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Theme.of(context).primaryColor,
-                                colorText: Colors.white,
-                                duration: const Duration(seconds: 2),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
               }),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildUsersTab(SearchViewModel searchController) {
+    if (searchController.userSearchResults.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.person_search,
+        title: 'No users found',
+        subtitle: 'Try searching with a different name or check your spelling',
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Results header
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            '${searchController.userSearchResults.length} user${searchController.userSearchResults.length == 1 ? '' : 's'} found',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF2C3E50),
+            ),
+          ),
+        ),
+
+        // Results list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 16),
+            itemCount: searchController.userSearchResults.length,
+            itemBuilder: (context, index) {
+              final user = searchController.userSearchResults[index];
+              return UserSearchCard(
+                user: user,
+                onTap: () {
+                  // TODO: Navigate to user profile
+                  Get.snackbar(
+                    'User Profile',
+                    'Opening ${user.name}\'s profile...',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    colorText: Colors.white,
+                    duration: const Duration(seconds: 2),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPostsTab(SearchViewModel searchController) {
+    if (searchController.postSearchResults.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.article_outlined,
+        title: 'No posts found',
+        subtitle:
+            'Try searching with different keywords or check your spelling',
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Results header
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            '${searchController.postSearchResults.length} post${searchController.postSearchResults.length == 1 ? '' : 's'} found',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF2C3E50),
+            ),
+          ),
+        ),
+
+        // Results list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 16),
+            itemCount: searchController.postSearchResults.length,
+            itemBuilder: (context, index) {
+              final post = searchController.postSearchResults[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: PostSearchCard(
+                  post: post,
+                  onTap: () {
+                    // TODO: Navigate to full post view
+                    Get.snackbar(
+                      'Post',
+                      'Opening full post view...',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      colorText: Colors.white,
+                      duration: const Duration(seconds: 2),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

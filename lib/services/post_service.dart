@@ -421,4 +421,103 @@ class PostService {
       'commentsCount': FieldValue.increment(1),
     });
   }
+
+  // Search posts by content
+  Future<List<PostModel>> searchPosts(String query, {int limit = 20}) async {
+    if (query.trim().isEmpty) return [];
+
+    try {
+      final searchTerm = query.toLowerCase().trim();
+      print('PostService: Searching for posts with term: "$searchTerm"');
+
+      // Search using contentLower field for case-insensitive search
+      final querySnapshot = await _firestore
+          .collection('posts')
+          .where('contentLower', isGreaterThanOrEqualTo: searchTerm)
+          .where('contentLower', isLessThanOrEqualTo: '$searchTerm\uf8ff')
+          .orderBy('contentLower')
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+
+      print(
+        'PostService: Firestore query returned ${querySnapshot.docs.length} documents',
+      );
+
+      final posts = querySnapshot.docs
+          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      // Also perform local filtering for more accurate results
+      final filteredPosts = posts
+          .where((post) => post.content.toLowerCase().contains(searchTerm))
+          .toList();
+
+      // Sort by creation date (most recent first)
+      filteredPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      // Enrich posts with author display names and profile photo when not anonymous
+      for (var i = 0; i < filteredPosts.length; i++) {
+        final p = filteredPosts[i];
+        if (p.userId.isNotEmpty && !p.isAnonymous) {
+          final userData = await _fetchUserData(p.userId);
+          final name =
+              userData['displayName'] ??
+              userData['name'] ??
+              userData['username'] ??
+              userData['fullName'] ??
+              '';
+          final photoUrl =
+              (userData['profilePhotoUrl'] ??
+                      userData['photoURL'] ??
+                      userData['photoUrl'] ??
+                      userData['avatarUrl'] ??
+                      userData['avatar'] ??
+                      userData['profilePic'] ??
+                      userData['profile_picture'] ??
+                      userData['imageUrl'] ??
+                      userData['imageURL'] ??
+                      '')
+                  .toString();
+          filteredPosts[i] = p.copyWith(
+            authorName: name,
+            userName: name,
+            profilePhotoUrl: photoUrl,
+          );
+        }
+      }
+
+      return filteredPosts;
+    } catch (e) {
+      print('Error searching posts: $e');
+      // Fallback to simple search if the above fails
+      return await _searchPostsSimple(query, limit: limit);
+    }
+  }
+
+  // Fallback search method (loads all posts then filters locally)
+  Future<List<PostModel>> _searchPostsSimple(
+    String query, {
+    int limit = 20,
+  }) async {
+    try {
+      final searchTerm = query.toLowerCase().trim();
+
+      // Get recent posts
+      final allPosts = await getAllPosts(
+        limit: 100,
+      ); // Get more posts for better search results
+
+      // Filter posts that contain the search term
+      final matchingPosts = allPosts
+          .where((post) => post.content.toLowerCase().contains(searchTerm))
+          .take(limit)
+          .toList();
+
+      return matchingPosts;
+    } catch (e) {
+      print('Error in simple post search: $e');
+      return [];
+    }
+  }
 }
