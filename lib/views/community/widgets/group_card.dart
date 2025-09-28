@@ -39,6 +39,7 @@ class GroupCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -49,15 +50,17 @@ class GroupCard extends StatelessWidget {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF2C3E50),
+            Flexible(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2C3E50),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Text(

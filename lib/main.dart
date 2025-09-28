@@ -5,9 +5,14 @@ import 'firebase_options.dart';
 import 'views/splash_view.dart';
 import 'viewmodels/theme_viewmodel.dart';
 import 'config/app_theme.dart';
+import 'utils/overflow_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize overflow protection system
+  OverflowHandler.initialize(debugOverflowEnabled: true);
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

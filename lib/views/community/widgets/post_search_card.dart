@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/post_model.dart';
+import '../../../utils/ui_safe_widgets.dart';
 
 class PostSearchCard extends StatelessWidget {
   final PostModel post;
@@ -43,11 +44,11 @@ class PostSearchCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
+            child: UISafeWidgets.safeColumn(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Author info
-                Row(
+                UISafeWidgets.safeRow(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(1),
@@ -114,7 +115,7 @@ class PostSearchCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Row(
+                          UISafeWidgets.safeRow(
                             children: [
                               Icon(
                                 Icons.access_time,
@@ -122,7 +123,7 @@ class PostSearchCard extends StatelessWidget {
                                 color: Colors.grey[500],
                               ),
                               const SizedBox(width: 4),
-                              Text(
+                              UISafeWidgets.safeText(
                                 _formatTime(post.createdAt),
                                 style: TextStyle(
                                   color: Colors.grey[600],
@@ -140,19 +141,20 @@ class PostSearchCard extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Post content (truncated for search)
-                Text(
+                UISafeWidgets.safeText(
                   _truncateContent(post.content, 150),
                   style: const TextStyle(
                     fontSize: 14,
                     height: 1.4,
                     color: Color(0xFF374151),
                   ),
+                  maxLines: 3,
                 ),
 
                 const SizedBox(height: 12),
 
                 // Interaction stats (compact)
-                Row(
+                UISafeWidgets.safeRow(
                   children: [
                     Icon(
                       Icons.favorite_border,
