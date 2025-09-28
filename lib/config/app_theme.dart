@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand seed color (indigo/purple)
+  // Brand seed color (indigo/purple) for light mode
   static const Color seed = Color(0xFF6366F1);
+
+  // Material You dark mode colors
+  static const Color darkPrimary = Color(0xFFBB86FC); // Soft Purple
+  static const Color darkSecondary = Color(0xFF03DAC6); // Teal Aqua
 
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
@@ -247,9 +251,24 @@ class AppTheme {
   }
 
   static ThemeData get dark {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: seed,
-      brightness: Brightness.dark,
+    // Create custom dark color scheme with Material You colors
+    final colorScheme = ColorScheme.dark(
+      primary: darkPrimary,
+      secondary: darkSecondary,
+      surface: const Color(0xFF121212),
+      background: const Color(0xFF0A0B0D),
+      onPrimary: Colors.black,
+      onSecondary: Colors.black,
+      onSurface: const Color(0xFFE1E4E8),
+      onBackground: const Color(0xFFE1E4E8),
+      primaryContainer: darkPrimary.withOpacity(0.2),
+      secondaryContainer: darkSecondary.withOpacity(0.2),
+      onPrimaryContainer: darkPrimary,
+      onSecondaryContainer: darkSecondary,
+      tertiary: const Color(0xFF8B949E),
+      onTertiary: Colors.white,
+      error: const Color(0xFFCF6679),
+      onError: Colors.black,
     );
 
     return ThemeData(

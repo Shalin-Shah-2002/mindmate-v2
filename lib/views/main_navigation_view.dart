@@ -28,8 +28,10 @@ class MainNavigationView extends StatelessWidget {
           currentIndex: navController.currentIndex.value,
           onTap: navController.changeTab,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Theme.of(context).primaryColor,
-          unselectedItemColor: Colors.grey[600],
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Theme.of(
+            context,
+          ).colorScheme.onSurface.withOpacity(0.6),
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 12,

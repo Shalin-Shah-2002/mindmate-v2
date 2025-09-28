@@ -6,6 +6,7 @@ import 'widgets/group_card.dart';
 import 'widgets/empty_state.dart';
 import 'widgets/post_card.dart';
 import '../search/search_results_view.dart';
+import 'create_post_view.dart';
 
 class CommunityView extends StatelessWidget {
   const CommunityView({super.key});
@@ -15,7 +16,7 @@ class CommunityView extends StatelessWidget {
     final CommunityViewModel controller = Get.put(CommunityViewModel());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -35,8 +36,8 @@ class CommunityView extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor.withOpacity(0.8),
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
@@ -48,7 +49,7 @@ class CommunityView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -56,13 +57,18 @@ class CommunityView extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       ),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Text(
                         'Share, support, and grow together',
-                        style: TextStyle(fontSize: 14, color: Colors.white70),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary.withOpacity(0.8),
+                        ),
                       ),
                     ],
                   ),
@@ -79,12 +85,12 @@ class CommunityView extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Support Groups',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF2C3E50),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -127,12 +133,12 @@ class CommunityView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Recent Posts',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF2C3E50),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -141,9 +147,7 @@ class CommunityView extends StatelessWidget {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (controller.posts.isEmpty) {
-                        return EmptyState(
-                          onCreate: () => _showCreatePostDialog(controller),
-                        );
+                        return const EmptyState();
                       }
                       return ListView.builder(
                         shrinkWrap: true,
@@ -168,6 +172,23 @@ class CommunityView extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Get.to(
+            () => const CreatePostView(),
+            transition: Transition.rightToLeft,
+            duration: const Duration(milliseconds: 300),
+          );
+        },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        elevation: 6,
+        icon: const Icon(Icons.add),
+        label: const Text(
+          'Create Post',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+      ),
     );
   }
 
@@ -180,251 +201,6 @@ class CommunityView extends StatelessWidget {
   }
 
   // Group card rendering moved to `widgets/group_card.dart` as `GroupCard`.
-
-  void _showCreatePostDialog(CommunityViewModel controller) {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header with gradient
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(Get.context!).primaryColor,
-                      Theme.of(Get.context!).primaryColor.withOpacity(0.8),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.create, color: Colors.white, size: 24),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Create Post',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Content input
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText:
-                        'Share your thoughts, feelings, or experiences...',
-                    hintStyle: TextStyle(color: Colors.grey[500]),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                  onChanged: (value) => controller.updateContent(value),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Mood selector
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'How are you feeling?',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF2C3E50),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Obx(
-                    () => Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: controller.availableMoods.take(6).map((mood) {
-                        final isSelected =
-                            controller.selectedMood.value == mood;
-                        return GestureDetector(
-                          onTap: () =>
-                              controller.selectMood(isSelected ? '' : mood),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Theme.of(Get.context!).primaryColor
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? Theme.of(Get.context!).primaryColor
-                                    : Colors.grey[300]!,
-                              ),
-                            ),
-                            child: Text(
-                              mood,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Anonymous toggle
-              Obx(
-                () => Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        controller.isAnonymous.value
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: Theme.of(Get.context!).primaryColor,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Post Anonymously',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              controller.isAnonymous.value
-                                  ? 'Your identity will be hidden'
-                                  : 'Others will see your profile',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch(
-                        value: controller.isAnonymous.value,
-                        onChanged: (value) => controller.toggleAnonymous(),
-                        activeThumbColor: Theme.of(Get.context!).primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        controller.clearPostForm();
-                        Get.back();
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: Obx(
-                      () => ElevatedButton(
-                        onPressed: controller.isCreatingPost.value
-                            ? null
-                            : () => controller.createPost(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(Get.context!).primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: controller.isCreatingPost.value
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text(
-                                'Share Post',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // Empty state, post card and interaction button are implemented as
   // separate widgets under `lib/views/community/widgets/`.
@@ -661,11 +437,11 @@ class CommunityView extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(Get.context!).cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Theme.of(Get.context!).shadowColor.withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -675,11 +451,19 @@ class CommunityView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Icon(Icons.search, color: Theme.of(Get.context!).primaryColor),
+              Icon(
+                Icons.search,
+                color: Theme.of(Get.context!).colorScheme.primary,
+              ),
               const SizedBox(width: 12),
               Text(
                 'Search users by name...',
-                style: TextStyle(color: Colors.grey[500], fontSize: 16),
+                style: TextStyle(
+                  color: Theme.of(
+                    Get.context!,
+                  ).colorScheme.onSurface.withOpacity(0.6),
+                  fontSize: 16,
+                ),
               ),
             ],
           ),

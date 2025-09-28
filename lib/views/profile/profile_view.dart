@@ -22,7 +22,7 @@ class ProfileView extends StatelessWidget {
     final communityController = Get.put(CommunityViewModel());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: () async {
           await authController.refreshUserProfile();
@@ -36,7 +36,7 @@ class ProfileView extends StatelessWidget {
               floating: false,
               pinned: true,
               elevation: 0,
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               flexibleSpace: FlexibleSpaceBar(
                 background: Obx(() {
                   if (authController.isLoading.value) {
@@ -54,8 +54,11 @@ class ProfileView extends StatelessWidget {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.settings, color: Colors.white),
                   onPressed: () => Get.to(() => const SettingsView()),
+                  icon: Icon(
+                    Icons.settings,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
               ],
             ),
@@ -77,28 +80,35 @@ class ProfileView extends StatelessWidget {
 
   // New Header Widgets for SliverAppBar
   Widget _buildLoadingHeader() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(Get.context!).primaryColor,
-            Theme.of(Get.context!).primaryColor.withOpacity(0.8),
-          ],
+    return Builder(
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.secondary,
+            ],
+          ),
         ),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: Colors.white),
-            SizedBox(height: 16),
-            Text(
-              'Loading profile...',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Loading profile...',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -111,12 +121,11 @@ class ProfileView extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).primaryColor,
-            Theme.of(context).primaryColor.withOpacity(0.8),
-            const Color(0xFF6366F1).withOpacity(0.9),
+            Theme.of(context).colorScheme.primary.withOpacity(0.9),
+            Theme.of(context).colorScheme.secondary,
           ],
         ),
       ),
@@ -133,7 +142,9 @@ class ProfileView extends StatelessWidget {
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withOpacity(0.3),
                     ),
                     child: CircleAvatar(
                       radius: 50,
@@ -141,12 +152,12 @@ class ProfileView extends StatelessWidget {
                           authController.userModel!.photoUrl.isNotEmpty
                           ? NetworkImage(authController.userModel!.photoUrl)
                           : null,
-                      backgroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       child: authController.userModel!.photoUrl.isEmpty
-                          ? const Icon(
+                          ? Icon(
                               Icons.person,
                               size: 50,
-                              color: Color(0xFF6366F1),
+                              color: Theme.of(context).colorScheme.primary,
                             )
                           : null,
                     ),
@@ -157,7 +168,7 @@ class ProfileView extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -167,10 +178,10 @@ class ProfileView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.camera_alt,
                         size: 16,
-                        color: Color(0xFF6366F1),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -182,10 +193,10 @@ class ProfileView extends StatelessWidget {
               // Name
               Text(
                 authController.userModel!.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
 
@@ -198,16 +209,18 @@ class ProfileView extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onPrimary.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   authController.userModel!.bio.isNotEmpty
                       ? authController.userModel!.bio
                       : 'Your mental wellness journey starts here ✨',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
@@ -227,7 +240,9 @@ class ProfileView extends StatelessWidget {
                   Container(
                     height: 30,
                     width: 1,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withOpacity(0.3),
                   ),
                   _buildStatColumn(
                     authController.userModel!.following.length.toString(),
@@ -236,7 +251,9 @@ class ProfileView extends StatelessWidget {
                   Container(
                     height: 30,
                     width: 1,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withOpacity(0.3),
                   ),
                   Obx(() {
                     final communityController = Get.find<CommunityViewModel>();
@@ -255,43 +272,55 @@ class ProfileView extends StatelessWidget {
   }
 
   Widget _buildErrorHeader(AuthViewModel authController) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.red.withOpacity(0.8), Colors.red.withOpacity(0.6)],
+    return Builder(
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.error.withOpacity(0.8),
+              Theme.of(context).colorScheme.error.withOpacity(0.6),
+            ],
+          ),
         ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.white),
-            const SizedBox(height: 16),
-            const Text(
-              'Failed to load profile',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.onError,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              authController.errorMessage.value,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                authController.clearError();
-                authController.refreshUserProfile();
-              },
-              child: const Text('Try Again'),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Failed to load profile',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onError,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                authController.errorMessage.value,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onError.withOpacity(0.7),
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  authController.clearError();
+                  authController.refreshUserProfile();
+                },
+                child: const Text('Try Again'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -338,26 +367,28 @@ class ProfileView extends StatelessWidget {
   }
 
   Widget _buildStatColumn(String count, String label) {
-    return Column(
-      children: [
-        Text(
-          count,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    return Builder(
+      builder: (context) => Column(
+        children: [
+          Text(
+            count,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withOpacity(0.8),
-            fontWeight: FontWeight.w500,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -465,88 +496,94 @@ class ProfileView extends StatelessWidget {
   }
 
   Widget _buildEmptyPostsState(CommunityViewModel communityController) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.1),
-              shape: BoxShape.circle,
+    return Builder(
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.article_outlined,
+                size: 64,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            child: const Icon(
-              Icons.article_outlined,
-              size: 64,
-              color: Color(0xFF6366F1),
+            const SizedBox(height: 24),
+            Text(
+              'No posts yet',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No posts yet',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF374151),
+            const SizedBox(height: 12),
+            Text(
+              'Share your mental wellness journey with the community.\nYour story could inspire and help others.',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                fontSize: 16,
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Share your mental wellness journey with the community.\nYour story could inspire and help others.',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 16,
-              height: 1.6,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  Get.find<NavigationViewModel>().changeTab(1); // Community tab
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Create First Post'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Get.find<NavigationViewModel>().changeTab(
+                      1,
+                    ); // Community tab
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create First Post'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              OutlinedButton.icon(
-                onPressed: () {
-                  final authController = Get.find<AuthViewModel>();
-                  if (authController.userModel != null) {
-                    communityController.retryLoadUserPosts();
-                  }
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Refresh'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF6366F1),
-                  side: const BorderSide(color: Color(0xFF6366F1)),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 16),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    final authController = Get.find<AuthViewModel>();
+                    if (authController.userModel != null) {
+                      communityController.retryLoadUserPosts();
+                    }
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

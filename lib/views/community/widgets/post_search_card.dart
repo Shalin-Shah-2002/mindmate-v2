@@ -27,11 +27,11 @@ class PostSearchCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -63,7 +63,7 @@ class PostSearchCard extends StatelessWidget {
                       ),
                       child: CircleAvatar(
                         radius: 16,
-                        backgroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
                         child: post.isAnonymous
                             ? Icon(
                                 Icons.visibility_off,
@@ -108,10 +108,10 @@ class PostSearchCard extends StatelessWidget {
                                       : (post.userName.isNotEmpty
                                             ? post.userName
                                             : 'Community Member')),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
-                              color: Color(0xFF2C3E50),
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -120,13 +120,17 @@ class PostSearchCard extends StatelessWidget {
                               Icon(
                                 Icons.access_time,
                                 size: 12,
-                                color: Colors.grey[500],
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.6),
                               ),
                               const SizedBox(width: 4),
                               UISafeWidgets.safeText(
                                 _formatTime(post.createdAt),
                                 style: TextStyle(
-                                  color: Colors.grey[600],
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.7),
                                   fontSize: 12,
                                 ),
                               ),
@@ -143,10 +147,10 @@ class PostSearchCard extends StatelessWidget {
                 // Post content (truncated for search)
                 UISafeWidgets.safeText(
                   _truncateContent(post.content, 150),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     height: 1.4,
-                    color: Color(0xFF374151),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   maxLines: 3,
                 ),
@@ -159,23 +163,37 @@ class PostSearchCard extends StatelessWidget {
                     Icon(
                       Icons.favorite_border,
                       size: 16,
-                      color: Colors.grey[500],
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.6),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${post.likesCount}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Icon(
                       Icons.chat_bubble_outline,
                       size: 16,
-                      color: Colors.grey[500],
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.6),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${post.commentsCount}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
                     ),
                     const Spacer(),
                     Container(

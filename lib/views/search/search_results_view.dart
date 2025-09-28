@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../viewmodels/search_viewmodel.dart';
 import '../community/widgets/user_search_card.dart';
 import '../community/widgets/post_search_card.dart';
+import '../profile/user_profile_view.dart';
 
 class SearchResultsView extends StatelessWidget {
   final String? initialQuery;
@@ -23,7 +24,7 @@ class SearchResultsView extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -31,10 +32,10 @@ class SearchResultsView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Theme.of(context).shadowColor.withOpacity(0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -302,15 +303,7 @@ class SearchResultsView extends StatelessWidget {
               return UserSearchCard(
                 user: user,
                 onTap: () {
-                  // TODO: Navigate to user profile
-                  Get.snackbar(
-                    'User Profile',
-                    'Opening ${user.name}\'s profile...',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Theme.of(context).primaryColor,
-                    colorText: Colors.white,
-                    duration: const Duration(seconds: 2),
-                  );
+                  Get.to(() => UserProfileView(user: user));
                 },
               );
             },

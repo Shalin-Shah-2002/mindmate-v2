@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 
 class UserService {
@@ -214,6 +215,78 @@ class UserService {
     } catch (e) {
       print('UserService: Error searching users with pagination: $e');
       throw Exception('Failed to search users: $e');
+    }
+  }
+
+  /// Follow a user
+  Future<bool> followUser(String userIdToFollow) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return false;
+
+      final currentUserId = currentUser.uid;
+      if (currentUserId == userIdToFollow)
+        return false; // Can't follow yourself
+
+      final batch = _firestore.batch();
+
+      // Add to current user's following list
+      final currentUserRef = _firestore
+          .collection(_usersCollection)
+          .doc(currentUserId);
+      batch.update(currentUserRef, {
+        'following': FieldValue.arrayUnion([userIdToFollow]),
+      });
+
+      // Add to target user's followers list
+      final targetUserRef = _firestore
+          .collection(_usersCollection)
+          .doc(userIdToFollow);
+      batch.update(targetUserRef, {
+        'followers': FieldValue.arrayUnion([currentUserId]),
+      });
+
+      await batch.commit();
+      return true;
+    } catch (e) {
+      print('UserService: Error following user: $e');
+      return false;
+    }
+  }
+
+  /// Unfollow a user
+  Future<bool> unfollowUser(String userIdToUnfollow) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return false;
+
+      final currentUserId = currentUser.uid;
+      if (currentUserId == userIdToUnfollow)
+        return false; // Can't unfollow yourself
+
+      final batch = _firestore.batch();
+
+      // Remove from current user's following list
+      final currentUserRef = _firestore
+          .collection(_usersCollection)
+          .doc(currentUserId);
+      batch.update(currentUserRef, {
+        'following': FieldValue.arrayRemove([userIdToUnfollow]),
+      });
+
+      // Remove from target user's followers list
+      final targetUserRef = _firestore
+          .collection(_usersCollection)
+          .doc(userIdToUnfollow);
+      batch.update(targetUserRef, {
+        'followers': FieldValue.arrayRemove([currentUserId]),
+      });
+
+      await batch.commit();
+      return true;
+    } catch (e) {
+      print('UserService: Error unfollowing user: $e');
+      return false;
     }
   }
 }
