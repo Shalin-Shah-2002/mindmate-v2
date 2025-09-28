@@ -32,14 +32,14 @@ class _UserProfileViewState extends State<UserProfileView> {
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize AuthViewModel if not already available
     try {
       _authController = Get.find<AuthViewModel>();
     } catch (e) {
       _authController = Get.put(AuthViewModel());
     }
-    
+
     // Initialize CommunityViewModel if not already available
     try {
       _communityController = Get.find<CommunityViewModel>();
@@ -178,7 +178,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Icon(
                                 isFollowing.value
@@ -286,7 +288,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onPrimary.withOpacity(0.3),
                 ),
                 child: CircleAvatar(
                   radius: 50,
@@ -327,7 +331,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -357,7 +363,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                   Container(
                     height: 30,
                     width: 1,
-                    color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withOpacity(0.3),
                   ),
                   _buildStatColumn(
                     context,
@@ -367,7 +375,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                   Container(
                     height: 30,
                     width: 1,
-                    color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withOpacity(0.3),
                   ),
                   Obx(() {
                     return _buildStatColumn(
@@ -525,7 +535,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                             Icon(
                               Icons.chat_outlined,
                               size: 48,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.5),
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -533,13 +545,17 @@ class _UserProfileViewState extends State<UserProfileView> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.7),
                               ),
                             ),
                             Text(
                               'Be the first to comment!',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.5),
                               ),
                             ),
                           ],
@@ -557,11 +573,15 @@ class _UserProfileViewState extends State<UserProfileView> {
                           children: [
                             CircleAvatar(
                               radius: 16,
-                              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.surfaceVariant,
                               child: Icon(
                                 Icons.person,
                                 size: 16,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -573,11 +593,14 @@ class _UserProfileViewState extends State<UserProfileView> {
                                     text: TextSpan(
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                       children: [
                                         TextSpan(
-                                          text: 'User ${c.userId.substring(0, 8)} ',
+                                          text:
+                                              'User ${c.userId.substring(0, 8)} ',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -591,7 +614,9 @@ class _UserProfileViewState extends State<UserProfileView> {
                                     _formatTime(c.createdAt),
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withOpacity(0.6),
                                     ),
                                   ),
                                 ],
@@ -610,7 +635,9 @@ class _UserProfileViewState extends State<UserProfileView> {
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.3),
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -640,8 +667,12 @@ class _UserProfileViewState extends State<UserProfileView> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
