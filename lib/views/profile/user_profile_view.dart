@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user_model.dart';
 import '../../models/post_model.dart';
 import '../../viewmodels/auth_viewmodel.dart';
@@ -23,11 +25,35 @@ class _UserProfileViewState extends State<UserProfileView> {
   late final AuthViewModel _authController;
   late final CommunityViewModel _communityController;
 
+  StreamSubscription<DocumentSnapshot>? _userStreamSubscription;
+  StreamSubscription<DocumentSnapshot>? _currentUserStreamSubscription;
+
   final RxBool isLoading = false.obs;
   final RxBool isFollowing = false.obs;
   final RxBool isLoadingPosts = true.obs;
   final RxList<PostModel> userPosts = <PostModel>[].obs;
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
+  final Rx<UserModel> displayedUser = Rx<UserModel>(
+    UserModel(
+      id: '',
+      name: '',
+      email: '',
+      photoUrl: '',
+      bio: '',
+      dob: DateTime.now(),
+      moodPreferences: [],
+      createdAt: DateTime.now(),
+      followers: [],
+      following: [],
+      isPrivate: false,
+      sosContacts: [],
+      settings: UserSettings(
+        darkMode: false,
+        fontSize: 'medium',
+        ttsEnabled: false,
+      ),
+    ),
+  );
 
   @override
   void initState() {
@@ -48,7 +74,9 @@ class _UserProfileViewState extends State<UserProfileView> {
     }
 
     currentUser.value = widget.user;
+    displayedUser.value = widget.user;
     _initializeProfile();
+    _listenToUserUpdates();
   }
 
   Future<void> _initializeProfile() async {
@@ -61,6 +89,69 @@ class _UserProfileViewState extends State<UserProfileView> {
       isFollowing.value = _authController.userModel!.following.contains(
         widget.user.id,
       );
+    }
+  }
+
+  void _listenToUserUpdates() {
+    // Listen to real-time updates for the profile user
+    _userStreamSubscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.user.id)
+        .snapshots()
+        .listen((snapshot) {
+          if (snapshot.exists && snapshot.data() != null) {
+            try {
+              final updatedUser = UserModel.fromMap(
+                snapshot.data()!,
+                snapshot.id,
+              );
+              displayedUser.value = updatedUser;
+            } catch (e) {
+              print('Error updating user data: $e');
+            }
+          }
+        });
+
+    // Also listen to current user updates to sync follow status
+    if (_authController.userModel != null) {
+      _currentUserStreamSubscription = FirebaseFirestore.instance
+          .collection('users')
+          .doc(_authController.userModel!.id)
+          .snapshots()
+          .listen((snapshot) {
+            if (snapshot.exists && snapshot.data() != null) {
+              try {
+                final updatedCurrentUser = UserModel.fromMap(
+                  snapshot.data()!,
+                  snapshot.id,
+                );
+                // Update follow status based on updated current user data
+                isFollowing.value = updatedCurrentUser.following.contains(
+                  widget.user.id,
+                );
+              } catch (e) {
+                print('Error updating current user data: $e');
+              }
+            }
+          });
+    }
+  }
+
+  @override
+  void dispose() {
+    _userStreamSubscription?.cancel();
+    _currentUserStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refreshUserData() async {
+    try {
+      final freshUserData = await _userService.getUserById(widget.user.id);
+      if (freshUserData != null) {
+        displayedUser.value = freshUserData;
+      }
+    } catch (e) {
+      print('Error refreshing user data: $e');
     }
   }
 
@@ -109,6 +200,12 @@ class _UserProfileViewState extends State<UserProfileView> {
 
       // Update the current user's following list
       await _authController.refreshUserProfile();
+
+      // Refresh the displayed user data to get updated follower counts
+      await _refreshUserData();
+
+      // Force refresh the follow status to ensure UI is in sync
+      await _checkFollowStatus();
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -352,41 +449,41 @@ class _UserProfileViewState extends State<UserProfileView> {
               ],
 
               // Stats Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatColumn(
-                    context,
-                    widget.user.followers.length.toString(),
-                    'Followers',
-                  ),
-                  Container(
-                    height: 30,
-                    width: 1,
-                    color: Theme.of(
+              Obx(
+                () => Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatColumn(
                       context,
-                    ).colorScheme.onPrimary.withOpacity(0.3),
-                  ),
-                  _buildStatColumn(
-                    context,
-                    widget.user.following.length.toString(),
-                    'Following',
-                  ),
-                  Container(
-                    height: 30,
-                    width: 1,
-                    color: Theme.of(
+                      displayedUser.value.followers.length.toString(),
+                      'Followers',
+                    ),
+                    Container(
+                      height: 30,
+                      width: 1,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withOpacity(0.3),
+                    ),
+                    _buildStatColumn(
                       context,
-                    ).colorScheme.onPrimary.withOpacity(0.3),
-                  ),
-                  Obx(() {
-                    return _buildStatColumn(
+                      displayedUser.value.following.length.toString(),
+                      'Following',
+                    ),
+                    Container(
+                      height: 30,
+                      width: 1,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withOpacity(0.3),
+                    ),
+                    _buildStatColumn(
                       context,
                       userPosts.length.toString(),
                       'Posts',
-                    );
-                  }),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

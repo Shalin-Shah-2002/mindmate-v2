@@ -69,6 +69,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  
+  # App icon generation
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -84,6 +87,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/images/logos/
     - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -111,3 +115,15 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# App Icon Configuration
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logos/mindmate_logo.png"
+  # Optional: Remove old launcher icon
+  remove_alpha_ios: true
+  
+  # Adaptive icon for Android (API 26+)
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logos/mindmate_logo.png"
