@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../views/auth/login_view.dart';
 import '../views/main_navigation_view.dart';
 import '../services/auth_service.dart';
-import '../viewmodels/auth_viewmodel.dart';
 
 class SplashViewModel extends GetxController {
   final AuthService _authService = AuthService();
@@ -33,8 +32,8 @@ class SplashViewModel extends GetxController {
         if (profileExists) {
           statusMessage.value = 'Welcome back!';
 
-          // User has complete profile, initialize AuthViewModel and go to main navigation
-          Get.put(AuthViewModel());
+          // User has complete profile, go to main navigation
+          // AuthViewModel is already initialized in main.dart
 
           // Small delay for smooth transition
           await Future.delayed(const Duration(milliseconds: 500));

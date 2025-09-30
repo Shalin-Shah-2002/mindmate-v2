@@ -7,8 +7,8 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure AuthViewModel is properly registered
-    final AuthViewModel authController = Get.put(AuthViewModel());
+    // AuthViewModel is already initialized globally in main.dart
+    final AuthViewModel authController = Get.find<AuthViewModel>();
 
     return Scaffold(
       body: Container(

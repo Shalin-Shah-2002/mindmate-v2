@@ -672,7 +672,7 @@ class _UserProfileViewState extends State<UserProfileView> {
                               radius: 16,
                               backgroundColor: Theme.of(
                                 context,
-                              ).colorScheme.surfaceVariant,
+                              ).colorScheme.surfaceContainerHighest,
                               child: Icon(
                                 Icons.person,
                                 size: 16,

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
 class AIService {
-  static const String _baseUrl = ApiConfig.geminiBaseUrl;
+  static const String _primaryBaseUrl = ApiConfig.geminiBaseUrl;
   static const String _apiKey = ApiConfig.geminiApiKey;
 
   // List of non-therapeutic topics to filter out
@@ -171,15 +171,11 @@ class AIService {
         ],
       };
 
-      // Make the API call
-      final response = await http.post(
-        Uri.parse('$_baseUrl?key=$_apiKey'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(requestBody),
-      );
+      // Make the API call with fallback endpoints
+      final responseBody = await _postToGemini(requestBody);
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+      if (responseBody != null) {
+        final responseData = json.decode(responseBody);
 
         // Extract the generated text from the response
         if (responseData['candidates'] != null &&
@@ -198,13 +194,12 @@ class AIService {
               ? aiResponse
               : 'I\'m here to help, but I couldn\'t generate a proper response. Could you please try rephrasing your message?';
         } else {
-          print('Unexpected response structure: $responseData');
+          print('Unexpected response structure from Gemini');
           return 'I\'m here to support you, but I\'m having trouble processing your message right now. Can you tell me more about how you\'re feeling?';
         }
-      } else {
-        print('API Error: ${response.statusCode} - ${response.body}');
-        return _getErrorResponse(response.statusCode);
       }
+      // If we reach here, all endpoints failed
+      return _getErrorResponse(503);
     } catch (e) {
       print('Error calling AI service: $e');
       return 'I\'m experiencing some technical difficulties right now, but I\'m still here for you. How are you feeling today, and is there anything specific you\'d like to talk about?';
@@ -223,6 +218,51 @@ class AIService {
       default:
         return 'I\'m having trouble connecting right now, but I want you to know that your feelings are valid and I\'m here to support you. Can you tell me what\'s on your mind?';
     }
+  }
+
+  /// Helper: POST to Gemini with fallback endpoints on 404/unsupported errors
+  Future<String?> _postToGemini(Map<String, dynamic> payload) async {
+    final endpoints = <String>[
+      _primaryBaseUrl,
+      ...ApiConfig.geminiFallbackBaseUrls,
+    ];
+
+    for (final baseUrl in endpoints) {
+      final fullUrl = '$baseUrl?key=$_apiKey';
+      try {
+        // Avoid logging API key
+        print('DEBUG: Gemini POST $baseUrl');
+        final response = await http.post(
+          Uri.parse(fullUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(payload),
+        );
+
+        if (response.statusCode == 200) {
+          return response.body;
+        }
+
+        // Retry on model not found/unsupported
+        if (response.statusCode == 404 || response.statusCode == 400) {
+          final body = response.body;
+          if (body.contains('not found') ||
+              body.contains('not supported') ||
+              body.contains('models/')) {
+            print(
+              'DEBUG: Gemini endpoint not supported (${response.statusCode}), trying next',
+            );
+            continue;
+          }
+        }
+
+        print('Gemini API Error: ${response.statusCode} - ${response.body}');
+        return null;
+      } catch (e) {
+        print('DEBUG: Error calling $baseUrl -> $e');
+        continue;
+      }
+    }
+    return null;
   }
 
   // Ensure AI response stays therapeutic and appropriate

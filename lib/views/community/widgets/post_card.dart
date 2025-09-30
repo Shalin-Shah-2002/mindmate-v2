@@ -156,8 +156,9 @@ class PostCard extends StatelessWidget {
                     ),
                   ],
                   onSelected: (value) {
-                    if (value == 'report')
+                    if (value == 'report') {
                       controller.reportPost(post.id, 'Inappropriate content');
+                    }
                   },
                 ),
               ],

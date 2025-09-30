@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 /// Global overflow error handler and debugger utilities
 class OverflowHandler {
   static bool _debugOverflowEnabled = true;
-  static List<String> _overflowLog = [];
+  static final List<String> _overflowLog = [];
 
   /// Initialize the overflow handler with global settings
   static void initialize({bool debugOverflowEnabled = true}) {

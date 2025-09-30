@@ -225,8 +225,9 @@ class UserService {
       if (currentUser == null) return false;
 
       final currentUserId = currentUser.uid;
-      if (currentUserId == userIdToFollow)
+      if (currentUserId == userIdToFollow) {
         return false; // Can't follow yourself
+      }
 
       final batch = _firestore.batch();
 
@@ -261,8 +262,9 @@ class UserService {
       if (currentUser == null) return false;
 
       final currentUserId = currentUser.uid;
-      if (currentUserId == userIdToUnfollow)
+      if (currentUserId == userIdToUnfollow) {
         return false; // Can't unfollow yourself
+      }
 
       final batch = _firestore.batch();
 

@@ -172,7 +172,6 @@ class AppTheme {
           fontSize: 12,
         ),
       ),
-      dialogBackgroundColor: Colors.white,
       snackBarTheme: SnackBarThemeData(
         backgroundColor: const Color(0xFF2D3748),
         contentTextStyle: const TextStyle(color: Colors.white),
@@ -204,26 +203,26 @@ class AppTheme {
         side: const BorderSide(color: Color(0xFFE2E8F0), width: 0.5),
       ),
       switchTheme: SwitchThemeData(
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return colorScheme.primary.withOpacity(0.6);
           }
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return const Color(0xFFCBD5E0);
           }
           return const Color(0xFFE2E8F0);
         }),
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return colorScheme.primary;
           }
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return const Color(0xFFA0AEC0);
           }
           return Colors.white;
         }),
-        trackOutlineColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return Colors.transparent;
           }
           return const Color(0xFFCBD5E0);
@@ -246,7 +245,7 @@ class AppTheme {
         color: colorScheme.primary,
         linearTrackColor: const Color(0xFFE2E8F0),
         circularTrackColor: const Color(0xFFE2E8F0),
-      ),
+      ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
     );
   }
 
@@ -256,11 +255,9 @@ class AppTheme {
       primary: darkPrimary,
       secondary: darkSecondary,
       surface: const Color(0xFF121212),
-      background: const Color(0xFF0A0B0D),
       onPrimary: Colors.black,
       onSecondary: Colors.black,
       onSurface: const Color(0xFFE1E4E8),
-      onBackground: const Color(0xFFE1E4E8),
       primaryContainer: darkPrimary.withOpacity(0.2),
       secondaryContainer: darkSecondary.withOpacity(0.2),
       onPrimaryContainer: darkPrimary,
@@ -429,7 +426,6 @@ class AppTheme {
           fontSize: 12,
         ),
       ),
-      dialogBackgroundColor: const Color(0xFF21262D),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: const Color(0xFF21262D),
         contentTextStyle: const TextStyle(color: Color(0xFFE1E4E8)),
@@ -461,26 +457,26 @@ class AppTheme {
         side: const BorderSide(color: Color(0xFF30363D), width: 0.5),
       ),
       switchTheme: SwitchThemeData(
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return colorScheme.primary.withOpacity(0.6);
           }
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return const Color(0xFF30363D);
           }
           return const Color(0xFF21262D);
         }),
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return colorScheme.primary;
           }
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return const Color(0xFF8B949E);
           }
           return const Color(0xFFB8BCC2);
         }),
-        trackOutlineColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return Colors.transparent;
           }
           return const Color(0xFF30363D);
@@ -503,7 +499,7 @@ class AppTheme {
         color: colorScheme.primary,
         linearTrackColor: const Color(0xFF30363D),
         circularTrackColor: const Color(0xFF30363D),
-      ),
+      ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF21262D)),
     );
   }
 }

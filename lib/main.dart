@@ -4,8 +4,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'views/splash_view.dart';
 import 'viewmodels/theme_viewmodel.dart';
+import 'viewmodels/auth_viewmodel.dart';
 import 'config/app_theme.dart';
 import 'utils/overflow_handler.dart';
+import 'services/chat_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +20,9 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print('Firebase initialized successfully');
+
+    // Initialize default chat rooms
+    await ChatService.initializeDefaultChatRooms();
   } catch (e) {
     print('Firebase initialization failed: $e');
     print('Running app without Firebase for now...');
@@ -32,6 +37,9 @@ class MindMateApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeController = Get.put(ThemeViewModel(), permanent: true);
+    // Initialize AuthViewModel early to avoid dependency issues
+    Get.put(AuthViewModel(), permanent: true);
+
     return GetBuilder<ThemeViewModel>(
       builder: (_) {
         return GetMaterialApp(

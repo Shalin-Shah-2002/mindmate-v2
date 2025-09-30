@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/models/user_model.dart';
+import 'package:mindmate/models/user_model.dart';
 
 void main() {
   group('User Search Logic Tests', () {

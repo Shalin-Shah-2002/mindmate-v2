@@ -6,6 +6,7 @@ import 'widgets/group_card.dart';
 import 'widgets/empty_state.dart';
 import 'widgets/post_card.dart';
 import '../search/search_results_view.dart';
+import '../chat/chat_rooms_view.dart';
 import 'create_post_view.dart';
 
 class CommunityView extends StatelessWidget {
@@ -49,25 +50,49 @@ class CommunityView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        'Community',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Community',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Share, support, and grow together',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Share, support, and grow together',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimary.withOpacity(0.8),
+                      // Chat Icon Button
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: IconButton(
+                          onPressed: () {
+                            _navigateToChat(context);
+                          },
+                          icon: const Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 28,
+                            color: Colors.white,
+                          ),
+                          tooltip: 'Chat Rooms',
                         ),
                       ),
                     ],
@@ -424,6 +449,15 @@ class CommunityView extends StatelessWidget {
   }
 
   // Time formatting moved to PostCard widget if needed.
+
+  // Navigate to chat rooms
+  void _navigateToChat(BuildContext context) {
+    Get.to(
+      () => const ChatRoomsView(),
+      transition: Transition.rightToLeft,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
 
   Widget _buildSearchBar(CommunityViewModel controller) {
     return GestureDetector(

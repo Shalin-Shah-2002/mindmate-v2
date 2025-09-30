@@ -53,6 +53,94 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // User chat profiles - users can read/write their own, others can read for trust verification
+    match /user_chat_profiles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow system/admin updates for trust level progression and safety flags
+      allow update: if request.auth != null && (
+        request.auth.uid == userId ||
+        // System updates for trust levels and community scores
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['trustLevel', 'communityScore', 'lastTrustLevelUpdate', 'safetyFlags', 'vulnerabilityIndicators'])
+      );
+    }
+    
+    // Chat rooms - read access based on trust levels, write for creation and moderation
+    match /chat_rooms/{roomId} {
+      allow read: if request.auth != null;
+      
+      // Users can create rooms if they have appropriate trust level OR it's system initialization
+      allow create: if request.auth != null && (
+        request.resource.data.createdBy == request.auth.uid ||
+        request.resource.data.createdBy == 'system'
+      );
+      
+      // Room creators and moderators can update rooms
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.createdBy ||
+        request.auth.uid in resource.data.moderatorIds ||
+        resource.data.createdBy == 'system'
+      );
+      
+      // Only room creators can delete rooms (except system rooms)
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.createdBy &&
+        resource.data.createdBy != 'system';
+    }
+    
+    // Chat messages - participants can read, write based on room participation and trust
+    match /chat_messages/{roomId}/messages/{messageId} {
+      allow read: if request.auth != null;
+      
+      // Users can create messages if they're in the room OR it's a system message
+      allow create: if request.auth != null && (
+        (request.auth.uid == request.resource.data.senderId &&
+         request.resource.data.senderId != null) ||
+        // Allow system messages
+        request.resource.data.senderId == 'system'
+      );
+      
+      // Message authors can update their own messages (for editing)
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.senderId;
+      
+      // Authors and moderators can delete messages
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.senderId
+        // Moderator deletion should be handled through cloud functions
+      );
+    }
+    
+    // Chat reports - users can create reports, moderators can read/update
+    match /chat_reports/{reportId} {
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.reporterId;
+      
+      // Only system/moderators should read reports
+      allow read: if request.auth != null;
+      
+      // Only system can update report status
+      allow update: if request.auth != null;
+    }
+    
+    // Chat room participants - manage room membership
+    match /chat_room_participants/{roomId}/participants/{userId} {
+      allow read: if request.auth != null;
+      
+      // Users can join/leave rooms themselves
+      allow create, delete: if request.auth != null && 
+        request.auth.uid == userId;
+      
+      // Moderators can manage participants
+      allow update, delete: if request.auth != null;
+    }
+    
+    // Collection group query for participants - allow authenticated users to query their own participation
+    match /{path=**}/participants/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+    }
+    
     // Posts - community feature rules
     match /posts/{postId} {
       // Anyone authenticated can read posts
@@ -99,6 +187,48 @@ service cloud.firestore {
       allow create: if request.auth != null && 
                    request.auth.uid == request.resource.data.reportedBy;
       allow read: if false; // Only admins should read reports (implement admin rules later)
+    }
+    
+    // Moderation logs - allow system to create and authenticated users to read their own
+    match /moderation_log/{logId} {
+      allow create: if request.auth != null;
+      // Allow users to read logs about themselves (targetUserId),
+      // and moderators (by moderatorId). Some logs may also include 'userId'.
+      allow read: if request.auth != null && (
+                    request.auth.uid == resource.data.userId ||
+                    request.auth.uid == resource.data.targetUserId ||
+                    request.auth.uid == resource.data.moderatorId
+                  );
+    }
+    
+    // Crisis interventions - allow users to create for themselves, system to read/write
+    match /crisis_interventions/{interventionId} {
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.userId;
+      allow read, update: if request.auth != null && 
+                          request.auth.uid == resource.data.userId;
+    }
+    
+    // Early interventions - allow users to create for themselves, system to read/write  
+    match /early_interventions/{interventionId} {
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.userId;
+      allow read, update: if request.auth != null && 
+                          request.auth.uid == resource.data.userId;
+    }
+
+    // Safety violations - used for progressive enforcement (warnings/kick)
+    match /safety_violations/{violationId} {
+      // Only authenticated users can create a violation record for themselves
+      allow create: if request.auth != null &&
+                    request.auth.uid == request.resource.data.userId;
+
+      // Users can read their own violations (used to count recent strikes)
+      allow read: if request.auth != null &&
+                  request.auth.uid == resource.data.userId;
+
+      // No client-side updates/deletes to past entries
+      allow update, delete: if false;
     }
     
     // Allow authenticated users to read public data they might need

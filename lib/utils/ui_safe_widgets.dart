@@ -185,12 +185,12 @@ class UISafeWidgets {
       addRepaintBoundaries: addRepaintBoundaries,
       addSemanticIndexes: addSemanticIndexes,
       cacheExtent: cacheExtent,
-      children: children,
       semanticChildCount: semanticChildCount,
       dragStartBehavior: dragStartBehavior,
       keyboardDismissBehavior: keyboardDismissBehavior,
       restorationId: restorationId,
       clipBehavior: clipBehavior,
+      children: children,
     );
   }
 
@@ -320,7 +320,7 @@ class ResponsiveUtils {
 
 /// Custom scroll physics that prevents overscroll issues
 class SafeScrollPhysics extends ClampingScrollPhysics {
-  const SafeScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
+  const SafeScrollPhysics({super.parent});
 
   @override
   SafeScrollPhysics applyTo(ScrollPhysics? ancestor) {

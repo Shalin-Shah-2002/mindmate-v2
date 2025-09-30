@@ -80,7 +80,7 @@ class UserModel {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
-    DateTime _parseDate(dynamic value) {
+    DateTime parseDate(dynamic value) {
       try {
         if (value == null) return DateTime.now();
         if (value is Timestamp) return value.toDate();
@@ -92,7 +92,7 @@ class UserModel {
       }
     }
 
-    String _string(
+    String string(
       Map<String, dynamic> m,
       List<String> keys, {
       String def = '',
@@ -106,19 +106,19 @@ class UserModel {
 
     return UserModel(
       id: id,
-      name: _string(map, ['name', 'displayName', 'fullName', 'username']),
-      email: _string(map, ['email']),
-      photoUrl: _string(map, [
+      name: string(map, ['name', 'displayName', 'fullName', 'username']),
+      email: string(map, ['email']),
+      photoUrl: string(map, [
         'photoUrl',
         'photoURL',
         'avatarUrl',
         'profilePhotoUrl',
         'imageUrl',
       ]),
-      bio: _string(map, ['bio']),
-      dob: _parseDate(map['dob']),
+      bio: string(map, ['bio']),
+      dob: parseDate(map['dob']),
       moodPreferences: List<String>.from(map['moodPreferences'] ?? const []),
-      createdAt: _parseDate(map['createdAt']),
+      createdAt: parseDate(map['createdAt']),
       followers: List<String>.from(map['followers'] ?? []),
       following: List<String>.from(map['following'] ?? []),
       isPrivate: map['isPrivate'] ?? false,

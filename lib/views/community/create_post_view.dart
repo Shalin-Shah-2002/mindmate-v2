@@ -260,7 +260,7 @@ class CreatePostView extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: controller.isAnonymous.value
                             ? Theme.of(context).colorScheme.primaryContainer
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                            : Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -309,7 +309,7 @@ class CreatePostView extends StatelessWidget {
                           Switch(
                             value: controller.isAnonymous.value,
                             onChanged: (value) => controller.toggleAnonymous(),
-                            activeColor: Theme.of(context).colorScheme.primary,
+                            activeThumbColor: Theme.of(context).colorScheme.primary,
                           ),
                         ],
                       ),
