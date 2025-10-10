@@ -245,7 +245,8 @@ class AppTheme {
         color: colorScheme.primary,
         linearTrackColor: const Color(0xFFE2E8F0),
         circularTrackColor: const Color(0xFFE2E8F0),
-      ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+      ),
+      dialogTheme: DialogThemeData(backgroundColor: Colors.white),
     );
   }
 
@@ -499,7 +500,8 @@ class AppTheme {
         color: colorScheme.primary,
         linearTrackColor: const Color(0xFF30363D),
         circularTrackColor: const Color(0xFF30363D),
-      ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF21262D)),
+      ),
+      dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF21262D)),
     );
   }
 }

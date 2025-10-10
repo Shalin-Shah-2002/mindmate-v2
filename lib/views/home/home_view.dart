@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../search/search_results_view.dart';
+import '../mood/mood_tracker_view.dart';
+import '../meditation/meditation_view.dart';
+import '../resources/resources_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -178,10 +181,10 @@ class HomeView extends StatelessWidget {
                     Icons.mood,
                     Colors.blue,
                     () {
-                      Get.snackbar(
-                        'Coming Soon',
-                        'Mood tracking will be available soon!',
-                        snackPosition: SnackPosition.BOTTOM,
+                      Get.to(
+                        () => const MoodTrackerView(),
+                        transition: Transition.rightToLeft,
+                        duration: const Duration(milliseconds: 300),
                       );
                     },
                   ),
@@ -193,10 +196,10 @@ class HomeView extends StatelessWidget {
                     Icons.self_improvement,
                     Colors.green,
                     () {
-                      Get.snackbar(
-                        'Coming Soon',
-                        'Meditation feature will be available soon!',
-                        snackPosition: SnackPosition.BOTTOM,
+                      Get.to(
+                        () => const MeditationView(),
+                        transition: Transition.rightToLeft,
+                        duration: const Duration(milliseconds: 300),
                       );
                     },
                   ),
@@ -212,10 +215,10 @@ class HomeView extends StatelessWidget {
                     Icons.library_books,
                     Colors.orange,
                     () {
-                      Get.snackbar(
-                        'Coming Soon',
-                        'Resource library will be available soon!',
-                        snackPosition: SnackPosition.BOTTOM,
+                      Get.to(
+                        () => const ResourcesView(),
+                        transition: Transition.rightToLeft,
+                        duration: const Duration(milliseconds: 300),
                       );
                     },
                   ),

@@ -253,5 +253,8 @@ class Group {
   bool isUserModerator(String userId) =>
       isUserAdmin(userId) || moderatorIds.contains(userId);
 
-  String get displayMemberCount => '$memberCount/$maxMembers members';
+  String get displayMemberCount {
+    final label = memberCount == 1 ? 'member' : 'members';
+    return '$memberCount $label';
+  }
 }

@@ -4,21 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeViewModel extends GetxController {
   static const _prefKey = 'app_theme_mode';
-  // values: 'system' | 'light' | 'dark'
-  final RxString _themePref = 'system'.obs;
+  // values: 'light' | 'dark' (system removed)
+  final RxString _themePref = 'light'.obs;
 
   ThemeMode get themeMode {
-    switch (_themePref.value) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
+    return _themePref.value == 'dark' ? ThemeMode.dark : ThemeMode.light;
   }
 
-  bool get followSystem => _themePref.value == 'system';
   bool get isDark => _themePref.value == 'dark';
 
   @override
@@ -29,18 +21,19 @@ class ThemeViewModel extends GetxController {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    _themePref.value = prefs.getString(_prefKey) ?? 'system';
+    final stored = prefs.getString(_prefKey);
+    // migrate any legacy 'system' to 'light'
+    if (stored == null || stored == 'system') {
+      _themePref.value = 'light';
+      await _save();
+    } else {
+      _themePref.value = stored;
+    }
   }
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefKey, _themePref.value);
-  }
-
-  void setFollowSystem(bool value) {
-    _themePref.value = value ? 'system' : 'light';
-    _save();
-    update();
   }
 
   void toggleDark(bool value) {

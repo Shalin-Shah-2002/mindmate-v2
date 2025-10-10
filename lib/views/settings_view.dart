@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../viewmodels/theme_viewmodel.dart';
+import 'resources/resources_view.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class SettingsView extends StatelessWidget {
@@ -15,7 +16,6 @@ class SettingsView extends StatelessWidget {
       appBar: AppBar(title: const Text('Settings'), centerTitle: true),
       body: GetBuilder<ThemeViewModel>(
         builder: (_) {
-          final follow = themeController.followSystem;
           final isDark = themeController.isDark;
 
           return ListView(
@@ -28,22 +28,10 @@ class SettingsView extends StatelessWidget {
                 const Color(0xFF10B981),
                 [
                   SwitchListTile(
-                    title: const Text('Follow device theme'),
-                    subtitle: const Text('Automatically switch light/dark'),
-                    value: follow,
-                    onChanged: (v) => themeController.setFollowSystem(v),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                  ),
-                  SwitchListTile(
                     title: const Text('Dark mode'),
                     subtitle: const Text('Use dark theme'),
                     value: isDark,
-                    onChanged: follow
-                        ? null
-                        : (v) => themeController.toggleDark(v),
+                    onChanged: (v) => themeController.toggleDark(v),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 4,
@@ -52,9 +40,7 @@ class SettingsView extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      follow
-                          ? 'Currently using device setting'
-                          : (isDark ? 'Dark mode active' : 'Light mode active'),
+                      isDark ? 'Dark mode active' : 'Light mode active',
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 13,
@@ -160,15 +146,7 @@ class SettingsView extends StatelessWidget {
                     'Quick access to mental health support',
                     Icons.health_and_safety_outlined,
                     const Color(0xFF059669),
-                    () {
-                      Get.snackbar(
-                        'Coming Soon',
-                        'Crisis resources will be available soon!',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.green.withOpacity(0.1),
-                        colorText: Colors.green[700],
-                      );
-                    },
+                    () => Get.to(() => const ResourcesView()),
                   ),
                   const Divider(height: 32, indent: 16, endIndent: 16),
                   _buildSettingItem(

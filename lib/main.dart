@@ -28,6 +28,10 @@ void main() async {
     print('Running app without Firebase for now...');
   }
 
+  // Initialize global controllers before runApp to avoid creating them during build
+  Get.put(ThemeViewModel(), permanent: true);
+  Get.put(AuthViewModel(), permanent: true);
+
   runApp(const MindMateApp());
 }
 
@@ -36,9 +40,7 @@ class MindMateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeController = Get.put(ThemeViewModel(), permanent: true);
-    // Initialize AuthViewModel early to avoid dependency issues
-    Get.put(AuthViewModel(), permanent: true);
+    final themeController = Get.find<ThemeViewModel>();
 
     return GetBuilder<ThemeViewModel>(
       builder: (_) {
