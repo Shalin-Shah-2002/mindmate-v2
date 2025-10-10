@@ -10,6 +10,49 @@
       ]
     },
     {
+      "collectionGroup": "group_members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "joinedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "group_members",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "groupId", "order": "ASCENDING" },
+        { "fieldPath": "joinedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "groups",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "privacy", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "memberCount", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "groups",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "privacy", "order": "ASCENDING" },
+        { "fieldPath": "memberCount", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "group_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "groupId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "moderation_log",
       "queryScope": "COLLECTION",
       "fields": [
@@ -22,14 +65,34 @@
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "private_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "participantIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionId": "private_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "participantIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "conversationId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
       ]
     },
     {

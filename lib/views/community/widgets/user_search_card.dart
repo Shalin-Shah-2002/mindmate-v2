@@ -1,11 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../models/user_model.dart';
+import '../../../services/private_chat_service.dart';
+import '../../../viewmodels/auth_viewmodel.dart';
+import '../../chat/private_chat_room_view.dart';
 
 class UserSearchCard extends StatelessWidget {
   final UserModel user;
   final VoidCallback? onTap;
+  final bool showMessageButton;
 
-  const UserSearchCard({super.key, required this.user, this.onTap});
+  const UserSearchCard({
+    super.key,
+    required this.user,
+    this.onTap,
+    this.showMessageButton = true,
+  });
+
+  Future<void> _startDirectMessage(BuildContext context) async {
+    try {
+      final authController = Get.find<AuthViewModel>();
+      if (authController.userModel == null) return;
+
+      // Check if users can chat
+      final permissionResult = await PrivateChatService.canUsersChatWithReason(
+        authController.userModel!.id,
+        user.id,
+      );
+
+      if (!permissionResult.allowed) {
+        Get.snackbar(
+          'Cannot Message',
+          permissionResult.reason ?? 'Direct messaging is not available',
+          backgroundColor: Theme.of(context).colorScheme.error,
+          colorText: Theme.of(context).colorScheme.onError,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Get or create conversation
+      final conversation = await PrivateChatService.createOrGetConversation(
+        user.id,
+      );
+
+      if (conversation != null) {
+        // Navigate to private chat room
+        Get.to(
+          () => PrivateChatRoomView(
+            conversationId: conversation.id,
+            otherUserId: user.id,
+            otherUser: user,
+          ),
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to start conversation',
+          backgroundColor: Theme.of(context).colorScheme.error,
+          colorText: Theme.of(context).colorScheme.onError,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } catch (e) {
+      print('Error starting DM: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to start direct message',
+        backgroundColor: Theme.of(context).colorScheme.error,
+        colorText: Theme.of(context).colorScheme.onError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +118,20 @@ class UserSearchCard extends StatelessWidget {
                 ),
               )
             : null,
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        trailing: showMessageButton
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () => _startDirectMessage(context),
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    color: Theme.of(context).colorScheme.primary,
+                    tooltip: 'Message ${user.name}',
+                  ),
+                  const Icon(Icons.chevron_right, color: Colors.grey),
+                ],
+              )
+            : const Icon(Icons.chevron_right, color: Colors.grey),
       ),
     );
   }

@@ -123,6 +123,58 @@ service cloud.firestore {
       // Only system can update report status
       allow update: if request.auth != null;
     }
+
+    // Private conversations (Direct Messages)
+    match /private_conversations/{conversationId} {
+      // Allow clients to check whether a conversation exists without leaking data
+      // This permits a document get/listen when the document does not yet exist,
+      // which is required by some client flows that check existence before create.
+      allow get, list: if request.auth != null &&
+                 !exists(/databases/$(database)/documents/private_conversations/$(conversationId));
+
+      allow read, update: if request.auth != null &&
+        // Only participants can read/update conversation
+        request.auth.uid in resource.data.participantIds;
+      
+      allow create: if request.auth != null &&
+        // Only allow creation when the authenticated user is one of the participants
+        (request.auth.uid in request.resource.data.participantIds) &&
+        // Exactly two participants for private DMs
+        request.resource.data.participantIds.size() == 2;
+      
+      // Disallow client-side delete; use isActive flag instead
+      allow delete: if false;
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if request.auth != null &&
+          exists(/databases/$(database)/documents/private_conversations/$(conversationId)) &&
+          request.auth.uid in get(/databases/$(database)/documents/private_conversations/$(conversationId)).data.participantIds;
+        
+        allow create: if request.auth != null &&
+          request.auth.uid == request.resource.data.senderId &&
+          exists(/databases/$(database)/documents/private_conversations/$(conversationId)) &&
+          request.auth.uid in get(/databases/$(database)/documents/private_conversations/$(conversationId)).data.participantIds;
+        
+        // Allow sender to update their own message (e.g., read receipts handled server-side)
+        allow update: if request.auth != null &&
+          request.auth.uid == resource.data.senderId;
+        
+        // No client deletes of messages for safety/auditing
+        allow delete: if false;
+      }
+    }
+
+    // User blocks collection for DM safety
+    match /user_blocks/{blockId} {
+      // Only the blocker can create or update their block document
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.blockerId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.blockerId;
+      // Allow read for the blocker (to show block list) and the blocked (to show state)
+      allow read: if request.auth != null && (request.auth.uid == resource.data.blockerId || request.auth.uid == resource.data.blockedUserId);
+      // No deletes, use isActive flag
+      allow delete: if false;
+    }
     
     // Chat room participants - manage room membership
     match /chat_room_participants/{roomId}/participants/{userId} {

@@ -3,6 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_chat_profile.dart';
 import '../models/user_trust_level.dart';
 
+// Lightweight result used to provide reasons for permission checks.
+// Kept at top-level to satisfy Dart's restriction on nested classes.
+class TrustPermissionResult {
+  final bool allowed;
+  final String? reason;
+  const TrustPermissionResult(this.allowed, [this.reason]);
+}
+
 class ChatTrustService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -335,6 +343,90 @@ class ChatTrustService {
     } catch (e) {
       print('ChatTrustService: Error getting remaining chat time: $e');
       return Duration.zero;
+    }
+  }
+
+  // Intentionally a different name than any similarly shaped classes in other
+  // libraries to avoid type name collisions when importing.
+  // PrivateChatService only relies on the presence of `.allowed` and `.reason`.
+  static const String _genericDeniedReason =
+      'Chat not permitted based on current safety and trust settings';
+
+  // Like canUsersChat but returns a human-readable reason when denied.
+  static Future<TrustPermissionResult> canUsersChatWithReason(
+    String userId1,
+    String userId2,
+  ) async {
+    try {
+      final profile1 = await getUserChatProfile(userId1);
+      final profile2 = await getUserChatProfile(userId2);
+
+      if (profile1 == null || profile2 == null) {
+        return const TrustPermissionResult(false, 'User profile not found');
+      }
+
+      // Mutual block check (defensive; DM service also checks user_blocks)
+      if (profile1.blockedUsers.contains(userId2)) {
+        return const TrustPermissionResult(false, "You've blocked this user");
+      }
+      if (profile2.blockedUsers.contains(userId1)) {
+        return const TrustPermissionResult(false, 'This user has blocked you');
+      }
+
+      // Daily limits
+      if (profile1.hasExceededDailyLimit()) {
+        return const TrustPermissionResult(
+          false,
+          'You have reached your daily chat limit',
+        );
+      }
+      if (profile2.hasExceededDailyLimit()) {
+        return const TrustPermissionResult(
+          false,
+          'The other user has reached their daily chat limit',
+        );
+      }
+
+      // Vulnerability protection and supervision constraints
+      if (profile1.vulnerabilityIndicators.needsSupervision &&
+          profile2.trustLevel.level < UserTrustLevel.trusted.level) {
+        return const TrustPermissionResult(
+          false,
+          'For safety, you can only chat with trusted members or mentors right now',
+        );
+      }
+      if (profile2.vulnerabilityIndicators.needsSupervision &&
+          profile1.trustLevel.level < UserTrustLevel.trusted.level) {
+        return const TrustPermissionResult(
+          false,
+          'This user currently requires supervision and cannot chat right now',
+        );
+      }
+
+      if (profile1.vulnerabilityIndicators.currentMoodLevel <= 3 &&
+          profile2.trustLevel == UserTrustLevel.newUser) {
+        return const TrustPermissionResult(
+          false,
+          "For your safety, you can't chat with new users right now",
+        );
+      }
+      if (profile2.vulnerabilityIndicators.currentMoodLevel <= 3 &&
+          profile1.trustLevel == UserTrustLevel.newUser) {
+        return const TrustPermissionResult(
+          false,
+          'For safety, new users cannot chat with this user right now',
+        );
+      }
+
+      // Fallback to the existing symmetric check
+      final allowed =
+          profile1.canChatWith(profile2) && profile2.canChatWith(profile1);
+      return allowed
+          ? const TrustPermissionResult(true)
+          : const TrustPermissionResult(false, _genericDeniedReason);
+    } catch (e) {
+      print('ChatTrustService: Error checking chat with reason: $e');
+      return const TrustPermissionResult(false, _genericDeniedReason);
     }
   }
 }

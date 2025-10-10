@@ -8,7 +8,9 @@ import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/community_viewmodel.dart';
 import '../../services/user_service.dart';
 import '../../services/post_service.dart';
+import '../../services/private_chat_service.dart';
 import '../community/widgets/post_card.dart';
+import '../chat/private_chat_room_view.dart';
 
 class UserProfileView extends StatefulWidget {
   final UserModel user;
@@ -144,17 +146,6 @@ class _UserProfileViewState extends State<UserProfileView> {
     super.dispose();
   }
 
-  Future<void> _refreshUserData() async {
-    try {
-      final freshUserData = await _userService.getUserById(widget.user.id);
-      if (freshUserData != null) {
-        displayedUser.value = freshUserData;
-      }
-    } catch (e) {
-      print('Error refreshing user data: $e');
-    }
-  }
-
   Future<void> _loadUserPosts() async {
     try {
       isLoadingPosts.value = true;
@@ -173,11 +164,10 @@ class _UserProfileViewState extends State<UserProfileView> {
   }
 
   Future<void> _toggleFollow() async {
-    if (_authController.userModel == null) return;
+    if (isLoading.value) return;
 
+    isLoading.value = true;
     try {
-      isLoading.value = true;
-
       if (isFollowing.value) {
         await _userService.unfollowUser(widget.user.id);
         isFollowing.value = false;
@@ -186,6 +176,7 @@ class _UserProfileViewState extends State<UserProfileView> {
           'You are no longer following ${widget.user.name}',
           backgroundColor: Theme.of(Get.context!).colorScheme.surface,
           colorText: Theme.of(Get.context!).colorScheme.onSurface,
+          snackPosition: SnackPosition.BOTTOM,
         );
       } else {
         await _userService.followUser(widget.user.id);
@@ -193,28 +184,78 @@ class _UserProfileViewState extends State<UserProfileView> {
         Get.snackbar(
           'Following',
           'You are now following ${widget.user.name}',
-          backgroundColor: Theme.of(Get.context!).colorScheme.primary,
-          colorText: Theme.of(Get.context!).colorScheme.onPrimary,
+          backgroundColor: Theme.of(Get.context!).colorScheme.surface,
+          colorText: Theme.of(Get.context!).colorScheme.onSurface,
+          snackPosition: SnackPosition.BOTTOM,
         );
       }
-
-      // Update the current user's following list
-      await _authController.refreshUserProfile();
-
-      // Refresh the displayed user data to get updated follower counts
-      await _refreshUserData();
-
-      // Force refresh the follow status to ensure UI is in sync
-      await _checkFollowStatus();
     } catch (e) {
+      print('Error toggling follow: $e');
       Get.snackbar(
         'Error',
         'Failed to update follow status',
         backgroundColor: Theme.of(Get.context!).colorScheme.error,
         colorText: Theme.of(Get.context!).colorScheme.onError,
+        snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> _startDirectMessage() async {
+    if (_authController.userModel == null) return;
+
+    try {
+      // Check if users can chat
+      final permissionResult = await PrivateChatService.canUsersChatWithReason(
+        _authController.userModel!.id,
+        widget.user.id,
+      );
+
+      if (!permissionResult.allowed) {
+        Get.snackbar(
+          'Cannot Message',
+          permissionResult.reason ?? 'Direct messaging is not available',
+          backgroundColor: Theme.of(Get.context!).colorScheme.error,
+          colorText: Theme.of(Get.context!).colorScheme.onError,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Get or create conversation
+      final conversation = await PrivateChatService.createOrGetConversation(
+        widget.user.id,
+      );
+
+      if (conversation != null) {
+        // Navigate to private chat room
+        Get.to(
+          () => PrivateChatRoomView(
+            conversationId: conversation.id,
+            otherUserId: widget.user.id,
+            otherUser: widget.user,
+          ),
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to start conversation',
+          backgroundColor: Theme.of(Get.context!).colorScheme.error,
+          colorText: Theme.of(Get.context!).colorScheme.onError,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } catch (e) {
+      print('Error starting DM: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to start direct message',
+        backgroundColor: Theme.of(Get.context!).colorScheme.error,
+        colorText: Theme.of(Get.context!).colorScheme.onError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -249,53 +290,89 @@ class _UserProfileViewState extends State<UserProfileView> {
               ),
             ),
 
-            // Follow Button Section (outside the header to avoid overflow)
+            // Action Buttons Section (Follow & Message)
             if (!isCurrentUser)
               SliverToBoxAdapter(
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   child: Obx(
-                    () => SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: isLoading.value ? null : _toggleFollow,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isFollowing.value
-                              ? Theme.of(context).colorScheme.surface
-                              : Theme.of(context).colorScheme.secondary,
-                          foregroundColor: isFollowing.value
-                              ? Theme.of(context).colorScheme.onSurface
-                              : Theme.of(context).colorScheme.onSecondary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        icon: isLoading.value
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Icon(
-                                isFollowing.value
-                                    ? Icons.person_remove
-                                    : Icons.person_add,
+                    () => Column(
+                      children: [
+                        // Follow Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: isLoading.value ? null : _toggleFollow,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isFollowing.value
+                                  ? Theme.of(context).colorScheme.surface
+                                  : Theme.of(context).colorScheme.secondary,
+                              foregroundColor: isFollowing.value
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context).colorScheme.onSecondary,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                        label: Text(
-                          isLoading.value
-                              ? 'Loading...'
-                              : isFollowing.value
-                              ? 'Unfollow'
-                              : 'Follow',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            ),
+                            icon: isLoading.value
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Icon(
+                                    isFollowing.value
+                                        ? Icons.person_remove
+                                        : Icons.person_add,
+                                  ),
+                            label: Text(
+                              isLoading.value
+                                  ? 'Loading...'
+                                  : isFollowing.value
+                                  ? 'Unfollow'
+                                  : 'Follow',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+
+                        const SizedBox(height: 12),
+
+                        // Message Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _startDirectMessage,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              side: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 1.5,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            icon: const Icon(Icons.chat_bubble_outline),
+                            label: const Text(
+                              'Message',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

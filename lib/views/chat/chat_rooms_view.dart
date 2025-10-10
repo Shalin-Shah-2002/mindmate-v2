@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../models/chat_room.dart';
 import '../../services/chat_service.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../chat/private_chat_list_view.dart';
+import '../../services/private_chat_service.dart';
 import 'crisis_support_chat_view.dart';
 
 class ChatRoomsView extends StatefulWidget {
@@ -137,23 +139,98 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
                 .toList() ??
             [];
 
-        if (generalRooms.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.chat,
-            title: 'No General Chat Rooms',
-            subtitle: 'General chat rooms will appear here',
-          );
-        }
-
-        return ListView.builder(
+        // Always show the DMs quick access at the top, then the existing room list
+        return ListView(
           padding: const EdgeInsets.all(16),
-          itemCount: generalRooms.length,
-          itemBuilder: (context, index) {
-            final room = generalRooms[index];
-            return _buildRoomCard(room);
-          },
+          children: [
+            _buildDMsQuickAccess(context),
+            const SizedBox(height: 12),
+            if (generalRooms.isEmpty)
+              _buildEmptyState(
+                icon: Icons.chat,
+                title: 'No General Chat Rooms',
+                subtitle: 'General chat rooms will appear here',
+              )
+            else
+              ...generalRooms.map((room) => _buildRoomCard(room)),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildDMsQuickAccess(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Get.to(() => const PrivateChatListView()),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.mail_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Direct Messages',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Chat privately with anyone — just like Instagram DMs',
+                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              StreamBuilder<int>(
+                stream: PrivateChatService.getTotalUnreadCount(),
+                builder: (context, snapshot) {
+                  final unread = snapshot.data ?? 0;
+                  if (unread <= 0) {
+                    return Icon(Icons.chevron_right, color: Colors.grey[600]);
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.error,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      unread > 99 ? '99+' : unread.toString(),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onError,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
