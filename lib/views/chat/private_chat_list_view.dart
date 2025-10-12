@@ -97,7 +97,7 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
                       fontSize: 14,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -148,7 +148,9 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
             Icon(
               Icons.chat_bubble_outline,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
             Text(
@@ -165,7 +167,9 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 32),
@@ -239,7 +243,7 @@ class _ConversationTile extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           elevation: hasUnread ? 4 : 1,
           shadowColor: hasUnread
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
               : null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -247,7 +251,7 @@ class _ConversationTile extends StatelessWidget {
                 ? BorderSide(
                     color: Theme.of(
                       context,
-                    ).colorScheme.primary.withOpacity(0.3),
+                    ).colorScheme.primary.withValues(alpha: 0.3),
                     width: 1,
                   )
                 : BorderSide.none,
@@ -263,7 +267,7 @@ class _ConversationTile extends StatelessWidget {
                   radius: 24,
                   backgroundColor: Theme.of(
                     context,
-                  ).colorScheme.primary.withOpacity(0.1),
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                   backgroundImage: otherUser.photoUrl.isNotEmpty
                       ? NetworkImage(otherUser.photoUrl)
                       : null,
@@ -309,7 +313,7 @@ class _ConversationTile extends StatelessWidget {
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: hasUnread
                           ? FontWeight.w500
                           : FontWeight.normal,
@@ -320,7 +324,7 @@ class _ConversationTile extends StatelessWidget {
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.5),
+                      ).colorScheme.onSurface.withValues(alpha: 0.5),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -336,7 +340,7 @@ class _ConversationTile extends StatelessWidget {
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
                     fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
@@ -382,10 +386,10 @@ class _ConversationTile extends StatelessWidget {
           radius: 24,
           backgroundColor: Theme.of(
             context,
-          ).colorScheme.primary.withOpacity(0.1),
+          ).colorScheme.primary.withValues(alpha: 0.1),
           child: Icon(
             Icons.person,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             size: 24,
           ),
         ),
@@ -393,7 +397,9 @@ class _ConversationTile extends StatelessWidget {
           height: 16,
           width: 120,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
         ),
@@ -402,7 +408,9 @@ class _ConversationTile extends StatelessWidget {
           width: 200,
           margin: const EdgeInsets.only(top: 4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(6),
           ),
         ),
@@ -410,7 +418,9 @@ class _ConversationTile extends StatelessWidget {
           height: 12,
           width: 60,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(6),
           ),
         ),

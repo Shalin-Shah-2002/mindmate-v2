@@ -84,7 +84,10 @@ class UISafeWidgets {
       softWrap: softWrap,
       textAlign: textAlign,
       textDirection: textDirection,
-      textScaleFactor: textScaleFactor,
+      // textScaleFactor is deprecated; use textScaler instead
+      textScaler: textScaleFactor != null
+          ? TextScaler.linear(textScaleFactor)
+          : null,
       locale: locale,
       strutStyle: strutStyle,
       textWidthBasis: textWidthBasis,

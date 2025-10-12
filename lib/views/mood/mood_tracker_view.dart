@@ -38,8 +38,8 @@ class MoodTrackerView extends StatelessWidget {
                         color: selected ? Colors.white : color,
                       ),
                       selectedColor: color,
-                      backgroundColor: color.withOpacity(0.1),
-                      side: BorderSide(color: color.withOpacity(0.3)),
+                      backgroundColor: color.withValues(alpha: 0.1),
+                      side: BorderSide(color: color.withValues(alpha: 0.3)),
                     );
                   }).toList(),
                 ),
@@ -153,7 +153,7 @@ class _MoodEntryTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -163,7 +163,7 @@ class _MoodEntryTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
-            backgroundColor: color.withOpacity(0.1),
+            backgroundColor: color.withValues(alpha: 0.1),
             child: Text(
               e.intensity.toString(),
               style: TextStyle(color: color, fontWeight: FontWeight.bold),

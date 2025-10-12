@@ -110,7 +110,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: colorScheme.primary.withOpacity(0.4)),
+          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.4)),
           foregroundColor: colorScheme.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -189,7 +189,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFFF7FAFC),
-        selectedColor: colorScheme.primary.withOpacity(0.15),
+        selectedColor: colorScheme.primary.withValues(alpha: 0.15),
         disabledColor: const Color(0xFFE2E8F0),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         labelStyle: const TextStyle(
@@ -205,7 +205,7 @@ class AppTheme {
       switchTheme: SwitchThemeData(
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return colorScheme.primary.withOpacity(0.6);
+            return colorScheme.primary.withValues(alpha: 0.6);
           }
           if (states.contains(WidgetState.disabled)) {
             return const Color(0xFFCBD5E0);
@@ -259,8 +259,8 @@ class AppTheme {
       onPrimary: Colors.black,
       onSecondary: Colors.black,
       onSurface: const Color(0xFFE1E4E8),
-      primaryContainer: darkPrimary.withOpacity(0.2),
-      secondaryContainer: darkSecondary.withOpacity(0.2),
+      primaryContainer: darkPrimary.withValues(alpha: 0.2),
+      secondaryContainer: darkSecondary.withValues(alpha: 0.2),
       onPrimaryContainer: darkPrimary,
       onSecondaryContainer: darkSecondary,
       tertiary: const Color(0xFF8B949E),
@@ -365,7 +365,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: colorScheme.primary.withOpacity(0.4)),
+          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.4)),
           foregroundColor: colorScheme.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -444,7 +444,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFF21262D),
-        selectedColor: colorScheme.primary.withOpacity(0.2),
+        selectedColor: colorScheme.primary.withValues(alpha: 0.2),
         disabledColor: const Color(0xFF30363D),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         labelStyle: const TextStyle(
@@ -460,7 +460,7 @@ class AppTheme {
       switchTheme: SwitchThemeData(
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return colorScheme.primary.withOpacity(0.6);
+            return colorScheme.primary.withValues(alpha: 0.6);
           }
           if (states.contains(WidgetState.disabled)) {
             return const Color(0xFF30363D);

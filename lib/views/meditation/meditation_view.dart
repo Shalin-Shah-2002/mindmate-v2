@@ -91,7 +91,7 @@ class _GuidedMeditationTabState extends State<GuidedMeditationTab> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -365,9 +365,13 @@ class _BreathingTabState extends State<BreathingTab>
                     height: size,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.1),
                       border: Border.all(
-                        color: Theme.of(context).primaryColor.withOpacity(0.3),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.3),
                         width: 2,
                       ),
                     ),

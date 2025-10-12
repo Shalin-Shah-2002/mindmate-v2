@@ -80,7 +80,7 @@ Widget _section(
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(16),
       border: Border.all(
-        color: Theme.of(context).dividerColor.withOpacity(0.5),
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
       ),
     ),
     child: Column(
@@ -93,7 +93,7 @@ Widget _section(
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(Icons.folder_outlined, color: color),
@@ -220,7 +220,7 @@ class _VideosTabState extends State<_VideosTab> {
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).dividerColor.withOpacity(0.3),
+                          ).dividerColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Column(
@@ -382,7 +382,7 @@ class _ToolsTab extends StatelessWidget {
                   'Emergency',
                   'Please contact your local emergency number.',
                   snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.red.withOpacity(0.08),
+                  backgroundColor: Colors.red.withValues(alpha: 0.08),
                   colorText: Colors.red[800],
                 );
               },
@@ -397,7 +397,7 @@ class _ToolsTab extends StatelessWidget {
                   'Crisis hotlines',
                   'Add region-specific numbers here.',
                   snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.orange.withOpacity(0.08),
+                  backgroundColor: Colors.orange.withValues(alpha: 0.08),
                   colorText: Colors.orange[800],
                 );
               },
