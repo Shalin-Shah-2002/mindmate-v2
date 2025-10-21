@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../search/search_results_view.dart';
 import '../mood/mood_tracker_view.dart';
@@ -161,114 +160,230 @@ class HomeView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // User profile section - vibrant gradient banner
+              // User profile section - matching card design
               Obx(() {
                 if (authController.userModel != null) {
-                  return Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFF6D83F2,
-                              ).withValues(alpha: 0.25),
-                              blurRadius: 16,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              radius: 40,
-                              backgroundImage:
-                                  authController.userModel!.photoUrl.isNotEmpty
-                                  ? NetworkImage(
-                                      authController.userModel!.photoUrl,
-                                    )
-                                  : null,
-                              backgroundColor: Colors.white,
-                              child: authController.userModel!.photoUrl.isEmpty
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 40,
-                                      color: Colors.grey,
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Welcome, ${authController.userModel!.name}!',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              authController.userModel!.bio.isNotEmpty
-                                  ? authController.userModel!.bio
-                                  : 'Your mental wellness journey starts here',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+                  return Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
                       ),
-                      _welcomeCardShimmerOverlay(),
-                    ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF00C6FF,
+                          ).withValues(alpha: 0.35),
+                          blurRadius: 24,
+                          offset: const Offset(0, 12),
+                          spreadRadius: -4,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: Stack(
+                        children: [
+                          // Gradient background
+                          Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                              ),
+                            ),
+                          ),
+                          // Decorative circles
+                          Positioned(
+                            right: -30,
+                            top: -30,
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: -20,
+                            bottom: -20,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.08),
+                              ),
+                            ),
+                          ),
+                          // Content
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 42,
+                                    backgroundColor: Colors.white,
+                                    backgroundImage:
+                                        authController
+                                            .userModel!
+                                            .photoUrl
+                                            .isNotEmpty
+                                        ? NetworkImage(
+                                            authController.userModel!.photoUrl,
+                                          )
+                                        : null,
+                                    child:
+                                        authController
+                                            .userModel!
+                                            .photoUrl
+                                            .isEmpty
+                                        ? const Icon(
+                                            Icons.person,
+                                            size: 42,
+                                            color: Colors.grey,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Welcome, ${authController.userModel!.name}!',
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 0.3,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    authController.userModel!.bio.isNotEmpty
+                                        ? authController.userModel!.bio
+                                        : 'Your mental wellness journey starts here',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white70,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 } else {
-                  return Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
+                  return Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF00C6FF,
+                          ).withValues(alpha: 0.35),
+                          blurRadius: 24,
+                          offset: const Offset(0, 12),
+                          spreadRadius: -4,
                         ),
-                        child: const Column(
-                          children: [
-                            Icon(
-                              Icons.psychology,
-                              size: 40,
-                              color: Colors.white,
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              'Welcome to MindMate!',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: Stack(
+                        children: [
+                          // Gradient background
+                          Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
                               ),
                             ),
-                            SizedBox(height: 6),
-                            Text(
-                              'Your mental wellness companion',
-                              style: TextStyle(color: Colors.white70),
+                          ),
+                          // Decorative circles
+                          Positioned(
+                            right: -30,
+                            top: -30,
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
                             ),
-                          ],
-                        ),
+                          ),
+                          Positioned(
+                            left: -20,
+                            bottom: -20,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.08),
+                              ),
+                            ),
+                          ),
+                          // Content
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.psychology,
+                                    size: 50,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Welcome to MindMate!',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 0.3,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Your mental wellness companion',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white70,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      _welcomeCardShimmerOverlay(),
-                    ],
+                    ),
                   );
                 }
               }),
@@ -453,35 +568,6 @@ class HomeView extends StatelessWidget {
       label: label,
       assetPath: assetPath,
       onTap: onTap,
-    );
-  }
-
-  // Shimmer overlay for welcome card: diagonal moving band every 4 seconds
-  Widget _welcomeCardShimmerOverlay() {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Shimmer(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.00),
-                Colors.white.withValues(alpha: 0.12),
-                Colors.white.withValues(alpha: 0.00),
-              ],
-              stops: const [0.35, 0.50, 0.65],
-            ),
-            period: const Duration(seconds: 4),
-            direction: ShimmerDirection.ltr,
-            child: Container(
-              // The band is created by the gradient above; base color transparent
-              color: Colors.transparent,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
