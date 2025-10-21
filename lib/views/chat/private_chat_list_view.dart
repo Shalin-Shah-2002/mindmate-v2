@@ -6,6 +6,7 @@ import '../../models/user_model.dart';
 import '../../services/private_chat_service.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import 'private_chat_room_view.dart';
+import '../../widgets/brand_ui.dart';
 
 class PrivateChatListView extends StatefulWidget {
   const PrivateChatListView({super.key});
@@ -69,71 +70,73 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
         ],
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: StreamBuilder<List<PrivateConversation>>(
-        stream: PrivateChatService.getConversationsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading conversations',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Theme.of(context).colorScheme.onSurface,
+      body: BrandBackground(
+        child: StreamBuilder<List<PrivateConversation>>(
+          stream: PrivateChatService.getConversationsStream(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Please try again later',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading conversations',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please try again later',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final conversations = snapshot.data ?? [];
+
+            if (conversations.isEmpty) {
+              return _buildEmptyState(context);
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                // Force refresh by rebuilding the stream
+                setState(() {});
+              },
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: conversations.length,
+                itemBuilder: (context, index) {
+                  final conversation = conversations[index];
+                  return _ConversationTile(
+                    conversation: conversation,
+                    currentUserId: _authController.userModel?.id ?? '',
+                    onTap: () => _openConversation(conversation),
+                  );
+                },
               ),
             );
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final conversations = snapshot.data ?? [];
-
-          if (conversations.isEmpty) {
-            return _buildEmptyState(context);
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              // Force refresh by rebuilding the stream
-              setState(() {});
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: conversations.length,
-              itemBuilder: (context, index) {
-                final conversation = conversations[index];
-                return _ConversationTile(
-                  conversation: conversation,
-                  currentUserId: _authController.userModel?.id ?? '',
-                  onTap: () => _openConversation(conversation),
-                );
-              },
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }

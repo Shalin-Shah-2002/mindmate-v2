@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/community_viewmodel.dart';
 import '../../viewmodels/navigation_viewmodel.dart';
 import '../settings_view.dart';
+import '../../services/sos_service.dart';
 import '../community/widgets/post_card.dart';
 
 class ProfileView extends StatelessWidget {
@@ -22,89 +24,160 @@ class ProfileView extends StatelessWidget {
     final communityController = Get.put(CommunityViewModel());
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await authController.refreshUserProfile();
-          await communityController.loadUserPosts();
-        },
-        child: CustomScrollView(
-          slivers: [
-            // App Bar with Profile Header
-            SliverAppBar(
-              expandedHeight: 380,
-              floating: false,
-              pinned: true,
-              elevation: 0,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Obx(() {
-                  if (authController.isLoading.value) {
-                    return _buildLoadingHeader();
-                  }
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF9FBFF), // very light indigo tint
+              Color(0xFFF7FFFB), // very light mint tint
+            ],
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await authController.refreshUserProfile();
+            await communityController.loadUserPosts();
+          },
+          child: CustomScrollView(
+            slivers: [
+              // App Bar with Profile Header
+              SliverAppBar(
+                expandedHeight: 420,
+                floating: false,
+                pinned: true,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Obx(() {
+                    if (authController.isLoading.value) {
+                      return _buildLoadingHeader();
+                    }
 
-                  if (authController.userModel != null) {
-                    return _buildProfileHeader(authController, context);
-                  } else if (authController.errorMessage.value.isNotEmpty) {
-                    return _buildErrorHeader(authController);
-                  } else {
-                    return _buildNoUserHeader();
-                  }
-                }),
+                    if (authController.userModel != null) {
+                      return _buildProfileHeader(authController, context);
+                    } else if (authController.errorMessage.value.isNotEmpty) {
+                      return _buildErrorHeader(authController);
+                    } else {
+                      return _buildNoUserHeader();
+                    }
+                  }),
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: () => Get.to(() => const SettingsView()),
+                    icon: const Icon(Icons.settings, color: Colors.white),
+                  ),
+                ],
               ),
-              actions: [
-                IconButton(
-                  onPressed: () => Get.to(() => const SettingsView()),
-                  icon: Icon(
-                    Icons.settings,
-                    color: Theme.of(context).colorScheme.onPrimary,
+
+              // Posts Section
+              Obx(() {
+                if (authController.userModel == null &&
+                    !authController.isLoading.value) {
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                }
+
+                return _buildPostsSection(communityController, authController);
+              }),
+
+              // Quick SOS from profile header
+              if (authController.userModel != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final user = authController.userModel!;
+                        if (user.sosContacts.isEmpty) {
+                          Get.snackbar(
+                            'No SOS Contacts',
+                            'Add SOS contacts in your profile settings first.',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                          return;
+                        }
+                        final phones = user.sosContacts
+                            .map((c) => c.phone)
+                            .toList();
+                        final sent = await SosService.sendGroupSms(
+                          phoneNumbers: phones,
+                          userName: user.name,
+                        );
+                        if (!sent) {
+                          Get.snackbar(
+                            'Unable to open SMS',
+                            'Please check your messaging app permissions.',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.sos),
+                      label: const Text('Send SOS to my contacts'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-
-            // Posts Section
-            Obx(() {
-              if (authController.userModel == null &&
-                  !authController.isLoading.value) {
-                return const SliverToBoxAdapter(child: SizedBox.shrink());
-              }
-
-              return _buildPostsSection(communityController, authController);
-            }),
-          ],
-        ),
-      ),
-    );
+            ],
+          ), // CustomScrollView
+        ), // RefreshIndicator
+      ), // Container
+    ); // Scaffold
   }
 
   // New Header Widgets for SliverAppBar
   Widget _buildLoadingHeader() {
     return Builder(
       builder: (context) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.secondary,
-            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
           ),
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(32),
+            bottomRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0xFF6D83F2),
+              blurRadius: 20,
+              offset: Offset(0, 10),
+              spreadRadius: -5,
+            ),
+          ],
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.onPrimary,
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
               ),
-              const SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 24),
+              const Text(
                 'Loading profile...',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontSize: 16,
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
@@ -119,73 +192,98 @@ class ProfileView extends StatelessWidget {
     BuildContext context,
   ) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Theme.of(context).colorScheme.primary.withOpacity(0.9),
-            Theme.of(context).colorScheme.secondary,
-          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
         ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF6D83F2),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+            spreadRadius: -5,
+          ),
+        ],
       ),
       child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
           child: Column(
             children: [
-              const SizedBox(height: 40), // Space for app bar
+              const SizedBox(height: 56), // Space for app bar & notch
               // Profile Picture
-              Stack(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withOpacity(0.3),
-                    ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage:
-                          authController.userModel!.photoUrl.isNotEmpty
-                          ? NetworkImage(authController.userModel!.photoUrl)
-                          : null,
-                      backgroundColor: Theme.of(context).colorScheme.surface,
-                      child: authController.userModel!.photoUrl.isEmpty
-                          ? Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Theme.of(context).colorScheme.primary,
-                            )
-                          : null,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // Ensure avatar never clips; wrap with sized box
+                  return SizedBox(
+                    height: 120,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.3),
+                            ),
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage:
+                                  authController.userModel!.photoUrl.isNotEmpty
+                                  ? NetworkImage(
+                                      authController.userModel!.photoUrl,
+                                    )
+                                  : null,
+                              backgroundColor: Colors.white,
+                              child: authController.userModel!.photoUrl.isEmpty
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: Color(0xFF6D83F2),
+                                    )
+                                  : null,
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                        ),
+                        Positioned(
+                          right: MediaQuery.of(context).size.width * 0.33,
+                          bottom: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                              ),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
 
               const SizedBox(height: 16),
@@ -193,14 +291,15 @@ class ProfileView extends StatelessWidget {
               // Name
               Text(
                 authController.userModel!.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
               // Bio
               Container(
@@ -209,25 +308,29 @@ class ProfileView extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onPrimary.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
                 child: Text(
                   authController.userModel!.bio.isNotEmpty
                       ? authController.userModel!.bio
                       : 'Your mental wellness journey starts here ✨',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
               // Stats Row
               Row(
@@ -238,22 +341,36 @@ class ProfileView extends StatelessWidget {
                     'Followers',
                   ),
                   Container(
-                    height: 30,
-                    width: 1,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withOpacity(0.3),
+                    height: 32,
+                    width: 1.5,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withOpacity(0.6),
+                          Colors.white.withOpacity(0.2),
+                        ],
+                      ),
+                    ),
                   ),
                   _buildStatColumn(
                     authController.userModel!.following.length.toString(),
                     'Following',
                   ),
                   Container(
-                    height: 30,
-                    width: 1,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withOpacity(0.3),
+                    height: 32,
+                    width: 1.5,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withOpacity(0.6),
+                          Colors.white.withOpacity(0.2),
+                        ],
+                      ),
+                    ),
                   ),
                   Obx(() {
                     final communityController = Get.find<CommunityViewModel>();
@@ -263,6 +380,46 @@ class ProfileView extends StatelessWidget {
                     );
                   }),
                 ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Manage SOS contacts
+              Align(
+                alignment: Alignment.center,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    // Try to open the platform contact picker via url scheme
+                    // Fallback to instructions if not supported.
+                    Get.dialog(
+                      AlertDialog(
+                        title: const Text('Add SOS Contacts'),
+                        content: const Text(
+                          'To add SOS contacts, pick numbers from your phone contacts '
+                          'and they will be saved to your profile. Coming soon: native contact picker.\n\n'
+                          'For now, please add them from settings or paste the numbers '
+                          'when prompted in the next screen.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Get.back(),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Get.back();
+                              // Navigate to settings (or a dedicated SOS manager when available)
+                              Get.to(() => const SettingsView());
+                            },
+                            child: const Text('Open Settings'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.person_add_alt_1),
+                  label: const Text('Add SOS Contacts'),
+                ),
               ),
             ],
           ),
@@ -279,47 +436,99 @@ class ProfileView extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).colorScheme.error.withOpacity(0.8),
-              Theme.of(context).colorScheme.error.withOpacity(0.6),
+              Colors.red.withOpacity(0.8),
+              Colors.orange.withOpacity(0.6),
             ],
           ),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(32),
+            bottomRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+              spreadRadius: -5,
+            ),
+          ],
         ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.onError,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Failed to load profile',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onError,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.error_outline,
+                    size: 56,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                authController.errorMessage.value,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onError.withOpacity(0.7),
-                  fontSize: 14,
+                const SizedBox(height: 24),
+                const Text(
+                  'Failed to load profile',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  authController.clearError();
-                  authController.refreshUserProfile();
-                },
-                child: const Text('Try Again'),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  authController.errorMessage.value,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      authController.clearError();
+                      authController.refreshUserProfile();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.red,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                    ),
+                    child: const Text(
+                      'Try Again',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -332,35 +541,96 @@ class ProfileView extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.grey.withOpacity(0.8), Colors.grey.withOpacity(0.6)],
+          colors: [Colors.grey[400]!, Colors.grey[600]!],
         ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: -5,
+          ),
+        ],
       ),
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.person_outline, size: 48, color: Colors.white),
-            const SizedBox(height: 16),
-            const Text(
-              'No user signed in',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_outline,
+                  size: 56,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Please sign in to view your profile',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Get.find<AuthViewModel>().signInWithGoogle(),
-              child: const Text('Sign In'),
-            ),
-          ],
+              const SizedBox(height: 24),
+              const Text(
+                'No user signed in',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Please sign in to view your profile',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6D83F2).withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: () => Get.find<AuthViewModel>().signInWithGoogle(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                  ),
+                  child: const Text(
+                    'Sign In',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -372,10 +642,10 @@ class ProfileView extends StatelessWidget {
         children: [
           Text(
             count,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onPrimary,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 4),
@@ -383,8 +653,9 @@ class ProfileView extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
-              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -431,18 +702,32 @@ class ProfileView extends StatelessWidget {
             if (index == 0) {
               // Header section
               return Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                margin: const EdgeInsets.only(top: 8),
                 child: Row(
                   children: [
-                    const Icon(Icons.grid_on, color: Color(0xFF6366F1)),
-                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.grid_on,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Text(
                       'Posts (${communityController.userPosts.length})',
                       style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF374151),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1D23),
+                        letterSpacing: 0.3,
                       ),
                     ),
                     const Spacer(),
@@ -452,15 +737,24 @@ class ProfileView extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.1),
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF6D83F2).withOpacity(0.15),
+                            const Color(0xFF00C6FF).withOpacity(0.15),
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF6D83F2).withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'All Posts',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF6366F1),
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF6D83F2),
                         ),
                       ),
                     ),
@@ -499,36 +793,57 @@ class ProfileView extends StatelessWidget {
     return Builder(
       builder: (context) => Container(
         padding: const EdgeInsets.all(32),
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF6D83F2).withOpacity(0.15),
+                    const Color(0xFF00C6FF).withOpacity(0.15),
+                  ],
+                ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.article_outlined,
                 size: 64,
-                color: Theme.of(context).colorScheme.primary,
+                color: Color(0xFF6D83F2),
               ),
             ),
             const SizedBox(height: 24),
-            Text(
+            const Text(
               'No posts yet',
               style: TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1A1D23),
+                letterSpacing: 0.3,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               'Share your mental wellness journey with the community.\nYour story could inspire and help others.',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                fontSize: 16,
+                color: Colors.grey[600],
+                fontSize: 15,
                 height: 1.6,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
@@ -536,23 +851,40 @@ class ProfileView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Get.find<NavigationViewModel>().changeTab(
-                      1,
-                    ); // Community tab
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create First Post'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF6D83F2),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                        spreadRadius: -3,
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Get.find<NavigationViewModel>().changeTab(
+                        1,
+                      ); // Community tab
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create First Post'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -567,9 +899,10 @@ class ProfileView extends StatelessWidget {
                   icon: const Icon(Icons.refresh),
                   label: const Text('Refresh'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.primary,
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
+                    foregroundColor: const Color(0xFF6D83F2),
+                    side: const BorderSide(
+                      color: Color(0xFF6D83F2),
+                      width: 1.5,
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,

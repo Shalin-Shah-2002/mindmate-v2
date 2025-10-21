@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../models/chat_room.dart';
 import '../../services/chat_service.dart';
@@ -6,6 +7,7 @@ import '../../viewmodels/auth_viewmodel.dart';
 import '../chat/private_chat_list_view.dart';
 import '../../services/private_chat_service.dart';
 import 'crisis_support_chat_view.dart';
+import '../../widgets/brand_ui.dart';
 
 class ChatRoomsView extends StatefulWidget {
   const ChatRoomsView({super.key});
@@ -36,37 +38,119 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          'Chat Rooms',
-          style: TextStyle(fontWeight: FontWeight.w700),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF9FBFF), // very light indigo tint
+              Color(0xFFF7FFFB), // very light mint tint
+            ],
+          ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Theme.of(context).colorScheme.onPrimary,
-          labelColor: Theme.of(context).colorScheme.onPrimary,
-          unselectedLabelColor: Theme.of(
-            context,
-          ).colorScheme.onPrimary.withOpacity(0.7),
-          tabs: const [
-            Tab(text: 'Support Groups'),
-            Tab(text: 'General Chat'),
-            Tab(text: 'My Rooms'),
-          ],
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom Header with gradient
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF6D83F2),
+                      blurRadius: 16,
+                      offset: Offset(0, 8),
+                      spreadRadius: -4,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Row(
+                        children: [
+                          _gradientText(
+                            'Chat Rooms',
+                            const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.chat_bubble_outline,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TabBar(
+                      controller: _tabController,
+                      indicatorColor: Colors.white,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.white.withOpacity(0.6),
+                      indicatorWeight: 3,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                      tabs: const [
+                        Tab(text: 'Support Groups'),
+                        Tab(text: 'General Chat'),
+                        Tab(text: 'My Rooms'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildSupportGroupsTab(),
+                    _buildGeneralChatTab(),
+                    _buildMyRoomsTab(),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildSupportGroupsTab(),
-          _buildGeneralChatTab(),
-          _buildMyRoomsTab(),
-        ],
-      ),
+    );
+  }
+
+  Widget _gradientText(String text, TextStyle style) {
+    return ShaderMask(
+      shaderCallback: (bounds) => const LinearGradient(
+        colors: [Colors.white, Colors.white],
+      ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+      blendMode: BlendMode.srcIn,
+      child: Text(text, style: style.copyWith(color: Colors.white)),
     );
   }
 
@@ -83,16 +167,51 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.red.withOpacity(0.15),
+                        Colors.orange.withOpacity(0.15),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.error_outline,
+                    size: 56,
+                    color: Colors.red,
+                  ),
+                ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Error loading chat rooms',
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1D23),
+                  ),
                 ),
                 const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () => setState(() {}),
-                  child: const Text('Retry'),
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () => setState(() {}),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                    ),
+                    child: const Text('Retry'),
+                  ),
                 ),
               ],
             ),
@@ -160,74 +279,98 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
   }
 
   Widget _buildDMsQuickAccess(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+        ),
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Get.to(() => const PrivateChatListView()),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6D83F2).withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Get.to(() => const PrivateChatListView()),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.mail_outline,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
-                child: Icon(
-                  Icons.mail_outline,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Direct Messages',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Direct Messages',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Chat privately with anyone — just like Instagram DMs',
-                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-              StreamBuilder<int>(
-                stream: PrivateChatService.getTotalUnreadCount(),
-                builder: (context, snapshot) {
-                  final unread = snapshot.data ?? 0;
-                  if (unread <= 0) {
-                    return Icon(Icons.chevron_right, color: Colors.grey[600]);
-                  }
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.error,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      unread > 99 ? '99+' : unread.toString(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onError,
-                        fontWeight: FontWeight.bold,
+                      SizedBox(height: 4),
+                      Text(
+                        'Chat privately with anyone — just like Instagram DMs',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                StreamBuilder<int>(
+                  stream: PrivateChatService.getTotalUnreadCount(),
+                  builder: (context, snapshot) {
+                    final unread = snapshot.data ?? 0;
+                    if (unread <= 0) {
+                      return const Icon(
+                        Icons.chevron_right,
+                        color: Colors.white,
+                      );
+                    }
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        unread > 99 ? '99+' : unread.toString(),
+                        style: const TextStyle(
+                          color: Color(0xFF6D83F2),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -278,148 +421,183 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
   }
 
   Widget _buildRoomCard(ChatRoom room, {bool showLeaveOption = false}) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: () => _showRoomDetails(room),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _getTopicColor(room.topic).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      room.topic.emoji,
-                      style: const TextStyle(fontSize: 24),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          room.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.people,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${room.participantCount}/${room.maxParticipants}',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            if (room.safetyLevel == ChatRoomSafetyLevel.high)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.shield,
-                                      size: 12,
-                                      color: Colors.green[700],
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Moderated',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.green[700],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+        border: Border.all(
+          color: _getTopicColor(room.topic).withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showRoomDetails(room),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            _getTopicColor(room.topic).withOpacity(0.15),
+                            _getTopicColor(room.topic).withOpacity(0.08),
                           ],
                         ),
-                      ],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        room.topic.emoji,
+                        style: const TextStyle(fontSize: 24),
+                      ),
                     ),
-                  ),
-                  if (showLeaveOption)
-                    IconButton(
-                      onPressed: () => _leaveRoom(room),
-                      icon: const Icon(Icons.exit_to_app),
-                      color: Colors.grey[600],
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                room.description,
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (room.isFull)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 16,
-                          color: Colors.orange[700],
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Room is full',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange[700],
-                            fontWeight: FontWeight.w500,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            room.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1D23),
+                            ),
                           ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.people,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${room.participantCount}/${room.maxParticipants}',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              if (room.safetyLevel == ChatRoomSafetyLevel.high)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.withOpacity(0.15),
+                                        Colors.green.withOpacity(0.08),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.shield,
+                                        size: 12,
+                                        color: Colors.green[700],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Moderated',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.green[700],
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (showLeaveOption)
+                      IconButton(
+                        onPressed: () => _leaveRoom(room),
+                        icon: const Icon(Icons.exit_to_app),
+                        color: Colors.grey[600],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  room.description,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (room.isFull)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.orange.withOpacity(0.15),
+                            Colors.orange.withOpacity(0.08),
+                          ],
                         ),
-                      ],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: Colors.orange[700],
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Room is full',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange[700],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -438,14 +616,28 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 80, color: Colors.grey[400]),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF6D83F2).withOpacity(0.15),
+                    const Color(0xFF00C6FF).withOpacity(0.15),
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 56, color: const Color(0xFF6D83F2)),
+            ),
             const SizedBox(height: 24),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1D23),
               ),
               textAlign: TextAlign.center,
             ),
@@ -476,6 +668,10 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
   Widget _buildRoomDetailsSheet(ChatRoom room) {
     return Container(
       padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,7 +682,14 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: _getTopicColor(room.topic).withOpacity(0.1),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _getTopicColor(room.topic).withOpacity(0.15),
+                      _getTopicColor(room.topic).withOpacity(0.08),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -504,6 +707,7 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1D23),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -524,7 +728,7 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
             'About this room',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: Colors.grey[800],
             ),
           ),
@@ -581,34 +785,53 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
                 builder: (context, memSnap) {
                   final alreadyMember = memSnap.data == true;
 
-                  return SizedBox(
+                  return Container(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: room.isFull && !alreadyMember
+                    decoration: BoxDecoration(
+                      gradient: room.isFull && !alreadyMember
                           ? null
-                          : () => alreadyMember
-                                ? _openRoom(room)
-                                : _joinRoom(room),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: Text(
-                        room.isFull && !alreadyMember
-                            ? 'Room Full'
-                            : alreadyMember
-                            ? 'Open Room'
-                            : 'Join Room',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                          : BrandUI.brandAccent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: room.isFull && !alreadyMember
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: const Color(0xFF6D83F2).withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                    ),
+                    child: Material(
+                      color: room.isFull && !alreadyMember
+                          ? Colors.grey[300]
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: room.isFull && !alreadyMember
+                            ? null
+                            : () => alreadyMember
+                                  ? _openRoom(room)
+                                  : _joinRoom(room),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: Text(
+                              room.isFull && !alreadyMember
+                                  ? 'Room Full'
+                                  : alreadyMember
+                                  ? 'Open Room'
+                                  : 'Join Room',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: room.isFull && !alreadyMember
+                                    ? Colors.grey[600]
+                                    : Colors.white,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -630,12 +853,16 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
     required String subtitle,
     Color? color,
   }) {
-    final chipColor = color ?? Colors.blue;
+    final chipColor = color ?? const Color(0xFF6D83F2);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: chipColor.withOpacity(0.1),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [chipColor.withOpacity(0.15), chipColor.withOpacity(0.08)],
+        ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: chipColor.withOpacity(0.3)),
       ),
@@ -649,7 +876,7 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
             children: [
               Text(
                 label,
-                style: TextStyle(fontWeight: FontWeight.w600, color: chipColor),
+                style: TextStyle(fontWeight: FontWeight.w700, color: chipColor),
               ),
               Text(
                 subtitle,

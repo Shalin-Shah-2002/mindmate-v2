@@ -113,124 +113,164 @@ class _ChatRoomViewState extends State<ChatRoomView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          if (_showCrisisHelp) _buildCrisisHelpBanner(),
-          if (_copingSuggestions.isNotEmpty) _buildCopingSuggestionsBanner(),
-          Expanded(child: _buildMessagesList()),
-          _buildMessageComposer(),
-        ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF9FBFF), // very light indigo tint
+              Color(0xFFF7FFFB), // very light mint tint
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              if (_showCrisisHelp) _buildCrisisHelpBanner(),
+              if (_copingSuggestions.isNotEmpty)
+                _buildCopingSuggestionsBanner(),
+              Expanded(child: _buildMessagesList()),
+              _buildMessageComposer(),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: _buildPanicButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildAppBar() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF6D83F2),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+            spreadRadius: -4,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Text(
-                widget.room.topic.emoji,
-                style: const TextStyle(fontSize: 20),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
+          IconButton(
+            onPressed: () => Get.back(),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              widget.room.topic.emoji,
+              style: const TextStyle(fontSize: 20),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   widget.room.name,
                   style: const TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Icon(
-                Icons.people,
-                size: 14,
-                color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${widget.room.participantCount} members',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onPrimary.withOpacity(0.8),
-                ),
-              ),
-              if (widget.room.safetyLevel == ChatRoomSafetyLevel.high) ...[
-                const SizedBox(width: 12),
-                Icon(Icons.shield, size: 14, color: Colors.green[300]),
-                const SizedBox(width: 4),
-                Text(
-                  'Moderated',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green[300],
-                    fontWeight: FontWeight.w500,
-                  ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.people, size: 14, color: Colors.white70),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${widget.room.participantCount} members',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (widget.room.safetyLevel ==
+                        ChatRoomSafetyLevel.high) ...[
+                      const SizedBox(width: 12),
+                      const Icon(Icons.shield, size: 14, color: Colors.white70),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Moderated',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
+            ),
+          ),
+          IconButton(
+            onPressed: _showRoomInfo,
+            icon: const Icon(Icons.info_outline, color: Colors.white),
+            tooltip: 'Room Info',
+          ),
+          PopupMenuButton<String>(
+            onSelected: _handleMenuAction,
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'report',
+                child: Row(
+                  children: [
+                    Icon(Icons.report_outlined, size: 20),
+                    SizedBox(width: 12),
+                    Text('Report Issue'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'mute',
+                child: Row(
+                  children: [
+                    Icon(Icons.volume_off_outlined, size: 20),
+                    SizedBox(width: 12),
+                    Text('Mute Notifications'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'leave',
+                child: Row(
+                  children: [
+                    Icon(Icons.exit_to_app, size: 20),
+                    SizedBox(width: 12),
+                    Text('Leave Room'),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
       ),
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      elevation: 2,
-      actions: [
-        IconButton(
-          onPressed: _showRoomInfo,
-          icon: const Icon(Icons.info_outline),
-          tooltip: 'Room Info',
-        ),
-        PopupMenuButton<String>(
-          onSelected: _handleMenuAction,
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'report',
-              child: Row(
-                children: [
-                  Icon(Icons.report_outlined, size: 20),
-                  SizedBox(width: 12),
-                  Text('Report Issue'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'mute',
-              child: Row(
-                children: [
-                  Icon(Icons.volume_off_outlined, size: 20),
-                  SizedBox(width: 12),
-                  Text('Mute Notifications'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'leave',
-              child: Row(
-                children: [
-                  Icon(Icons.exit_to_app, size: 20),
-                  SizedBox(width: 12),
-                  Text('Leave Room'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -354,46 +394,79 @@ class _ChatRoomViewState extends State<ChatRoomView>
           }
 
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-                const SizedBox(height: 16),
-                Text(
-                  errorMessage,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Please try again or contact support if the problem persists.',
-                  style: TextStyle(color: Colors.grey[500], fontSize: 14),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () => setState(() {}),
-                      child: Text(actionText),
-                    ),
-                    if (error.contains('permission') ||
-                        error.contains('not-found'))
-                      const SizedBox(width: 16),
-                    if (error.contains('permission') ||
-                        error.contains('not-found'))
-                      ElevatedButton(
-                        onPressed: () => Get.back(),
-                        child: const Text('Go Back'),
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.red.withOpacity(0.15),
+                          Colors.orange.withOpacity(0.15),
+                        ],
                       ),
-                  ],
-                ),
-              ],
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    errorMessage,
+                    style: const TextStyle(
+                      color: Color(0xFF1A1D23),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Please try again or contact support if the problem persists.',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () => setState(() {}),
+                        child: Text(actionText),
+                      ),
+                      if (error.contains('permission') ||
+                          error.contains('not-found'))
+                        const SizedBox(width: 16),
+                      if (error.contains('permission') ||
+                          error.contains('not-found'))
+                        Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () => Get.back(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                            ),
+                            child: const Text('Go Back'),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -435,7 +508,14 @@ class _ChatRoomViewState extends State<ChatRoomView>
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF6D83F2).withOpacity(0.15),
+                  const Color(0xFF00C6FF).withOpacity(0.15),
+                ],
+              ),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -446,7 +526,11 @@ class _ChatRoomViewState extends State<ChatRoomView>
           const SizedBox(height: 24),
           Text(
             'Welcome to ${widget.room.name}',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1D23),
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -467,25 +551,47 @@ class _ChatRoomViewState extends State<ChatRoomView>
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.symmetric(horizontal: 32),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF6D83F2).withOpacity(0.1),
+                  const Color(0xFF00C6FF).withOpacity(0.1),
+                ],
+              ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue[200]!),
+              border: Border.all(
+                color: const Color(0xFF6D83F2).withOpacity(0.3),
+              ),
             ),
             child: Column(
               children: [
-                Icon(Icons.shield, color: Colors.blue[600], size: 24),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.shield,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'This is a safe space',
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.blue[700],
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF6D83F2),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'All messages are monitored for safety. Be kind and supportive.',
-                  style: TextStyle(fontSize: 12, color: Colors.blue[600]),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -690,13 +796,11 @@ class _ChatRoomViewState extends State<ChatRoomView>
       case MessageDisplayStatus.system:
         return Colors.amber[100]!;
       case MessageDisplayStatus.pendingModeration:
-        return isMe ? Colors.orange[50]! : Theme.of(context).cardColor;
+        return isMe ? Colors.orange[50]! : Colors.white;
       case MessageDisplayStatus.blocked:
         return Colors.red[50]!;
       default:
-        return isMe
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).cardColor;
+        return isMe ? const Color(0xFF6D83F2) : Colors.white;
     }
   }
 
@@ -720,15 +824,11 @@ class _ChatRoomViewState extends State<ChatRoomView>
       case MessageDisplayStatus.system:
         return Colors.amber[800]!;
       case MessageDisplayStatus.pendingModeration:
-        return isMe
-            ? Colors.orange[800]!
-            : Theme.of(context).colorScheme.onSurface;
+        return isMe ? Colors.orange[800]! : const Color(0xFF1A1D23);
       case MessageDisplayStatus.blocked:
         return Colors.red[800]!;
       default:
-        return isMe
-            ? Theme.of(context).colorScheme.onPrimary
-            : Theme.of(context).colorScheme.onSurface;
+        return isMe ? Colors.white : const Color(0xFF1A1D23);
     }
   }
 
@@ -738,17 +838,12 @@ class _ChatRoomViewState extends State<ChatRoomView>
       height: 32,
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
         ),
+        shape: BoxShape.circle,
       ),
-      child: Icon(
-        Icons.person,
-        size: 18,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      child: const Icon(Icons.person, size: 18, color: Colors.white),
     );
   }
 
@@ -841,7 +936,7 @@ class _ChatRoomViewState extends State<ChatRoomView>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -856,12 +951,18 @@ class _ChatRoomViewState extends State<ChatRoomView>
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF6D83F2).withOpacity(0.08),
+                      const Color(0xFF00C6FF).withOpacity(0.08),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withOpacity(0.3),
+                    color: const Color(0xFF6D83F2).withOpacity(0.2),
+                    width: 1,
                   ),
                 ),
                 child: TextField(
@@ -869,10 +970,15 @@ class _ChatRoomViewState extends State<ChatRoomView>
                   focusNode: _messageFocusNode,
                   maxLines: 5,
                   minLines: 1,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(
+                    color: Color(0xFF1A1D23),
+                    fontSize: 15,
+                  ),
+                  decoration: InputDecoration(
                     hintText: 'Type a supportive message...',
+                    hintStyle: TextStyle(color: Colors.grey[600]),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
@@ -885,18 +991,22 @@ class _ChatRoomViewState extends State<ChatRoomView>
             const SizedBox(width: 8),
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
+              decoration: _isComposing
+                  ? const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                      ),
+                      shape: BoxShape.circle,
+                    )
+                  : BoxDecoration(
+                      color: Colors.grey[200],
+                      shape: BoxShape.circle,
+                    ),
               child: IconButton(
                 onPressed: _isComposing ? _sendMessage : null,
                 icon: Icon(
                   Icons.send,
-                  color: _isComposing
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.grey[400],
-                ),
-                style: IconButton.styleFrom(
-                  backgroundColor: _isComposing
-                      ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                      : null,
+                  color: _isComposing ? Colors.white : Colors.grey[400],
                 ),
               ),
             ),

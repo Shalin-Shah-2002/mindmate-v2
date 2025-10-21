@@ -50,6 +50,8 @@ dependencies:
   # HTTP & API
   http: ^1.1.0
   url_launcher: ^6.2.4
+  geolocator: ^9.0.2
+  permission_handler: ^11.3.1
   
   # Local Storage
   shared_preferences: ^2.2.2

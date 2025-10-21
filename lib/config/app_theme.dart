@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTheme {
   // Brand seed color (indigo/purple) for light mode
@@ -83,19 +84,24 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1A1D23),
+        foregroundColor: Color(0xFF1A1D23),
         elevation: 0,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.black12,
-        titleTextStyle: const TextStyle(
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        titleTextStyle: TextStyle(
           color: Color(0xFF1A1D23),
           fontWeight: FontWeight.w600,
           fontSize: 18,
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF4A5568), size: 24),
+        iconTheme: IconThemeData(color: Color(0xFF4A5568), size: 24),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -338,19 +344,24 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: const Color(0xFF161B22),
-        foregroundColor: const Color(0xFFE1E4E8),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF161B22),
+        foregroundColor: Color(0xFFE1E4E8),
         elevation: 0,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.black26,
-        titleTextStyle: const TextStyle(
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        titleTextStyle: TextStyle(
           color: Color(0xFFE1E4E8),
           fontWeight: FontWeight.w600,
           fontSize: 18,
         ),
-        iconTheme: const IconThemeData(color: Color(0xFFE1E4E8), size: 24),
+        iconTheme: IconThemeData(color: Color(0xFFE1E4E8), size: 24),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

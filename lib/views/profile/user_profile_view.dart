@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user_model.dart';
@@ -264,196 +265,271 @@ class _UserProfileViewState extends State<UserProfileView> {
     final isCurrentUser = _authController.userModel?.id == widget.user.id;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await _initializeProfile();
-        },
-        child: CustomScrollView(
-          slivers: [
-            // Profile Header
-            SliverAppBar(
-              expandedHeight: 280,
-              floating: false,
-              pinned: true,
-              elevation: 0,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              flexibleSpace: FlexibleSpaceBar(
-                background: _buildProfileHeader(context, isCurrentUser),
-              ),
-              leading: IconButton(
-                onPressed: () => Get.back(),
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: Theme.of(context).colorScheme.onPrimary,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF9FBFF), // very light indigo tint
+              Color(0xFFF7FFFB), // very light mint tint
+            ],
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await _initializeProfile();
+          },
+          child: CustomScrollView(
+            slivers: [
+              // Profile Header
+              SliverAppBar(
+                expandedHeight: 300,
+                floating: false,
+                pinned: true,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: _buildProfileHeader(context, isCurrentUser),
+                ),
+                leading: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                 ),
               ),
-            ),
 
-            // Action Buttons Section (Follow & Message)
-            if (!isCurrentUser)
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Obx(
-                    () => Column(
-                      children: [
-                        // Follow Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: isLoading.value ? null : _toggleFollow,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isFollowing.value
-                                  ? Theme.of(context).colorScheme.surface
-                                  : Theme.of(context).colorScheme.secondary,
-                              foregroundColor: isFollowing.value
-                                  ? Theme.of(context).colorScheme.onSurface
-                                  : Theme.of(context).colorScheme.onSecondary,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            icon: isLoading.value
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+              // Action Buttons Section (Follow & Message)
+              if (!isCurrentUser)
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Obx(
+                      () => Column(
+                        children: [
+                          // Follow Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: Container(
+                              decoration: isFollowing.value
+                                  ? null
+                                  : const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF6D83F2),
+                                          Color(0xFF00C6FF),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(12),
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0xFF6D83F2),
+                                          blurRadius: 12,
+                                          offset: Offset(0, 6),
+                                          spreadRadius: -3,
+                                        ),
+                                      ],
                                     ),
-                                  )
-                                : Icon(
-                                    isFollowing.value
-                                        ? Icons.person_remove
-                                        : Icons.person_add,
+                              child: ElevatedButton.icon(
+                                onPressed: isLoading.value
+                                    ? null
+                                    : _toggleFollow,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isFollowing.value
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  foregroundColor: isFollowing.value
+                                      ? const Color(0xFF6D83F2)
+                                      : Colors.white,
+                                  shadowColor: Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
                                   ),
-                            label: Text(
-                              isLoading.value
-                                  ? 'Loading...'
-                                  : isFollowing.value
-                                  ? 'Unfollow'
-                                  : 'Follow',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: isFollowing.value
+                                        ? const BorderSide(
+                                            color: Color(0xFF6D83F2),
+                                            width: 1.5,
+                                          )
+                                        : BorderSide.none,
+                                  ),
+                                ),
+                                icon: isLoading.value
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : Icon(
+                                        isFollowing.value
+                                            ? Icons.person_remove
+                                            : Icons.person_add,
+                                        size: 20,
+                                      ),
+                                label: Text(
+                                  isLoading.value
+                                      ? 'Loading...'
+                                      : isFollowing.value
+                                      ? 'Unfollow'
+                                      : 'Follow',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
 
-                        // Message Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _startDirectMessage,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                              side: BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 1.5,
+                          // Message Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _startDirectMessage,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF6D83F2),
+                                side: const BorderSide(
+                                  color: Color(0xFF6D83F2),
+                                  width: 1.5,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                              icon: const Icon(
+                                Icons.chat_bubble_outline,
+                                size: 20,
                               ),
-                            ),
-                            icon: const Icon(Icons.chat_bubble_outline),
-                            label: const Text(
-                              'Message',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                              label: const Text(
+                                'Message',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                  ),
+                ),
+
+              // Posts Section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.grid_on,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Posts',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1D23),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-            // Posts Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Posts',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-
-            // Posts List
-            Obx(() {
-              if (isLoadingPosts.value) {
-                return const SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                );
-              }
-
-              if (userPosts.isEmpty) {
-                return SliverToBoxAdapter(
-                  child: _buildEmptyPostsState(context, isCurrentUser),
-                );
-              }
-
-              return SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final post = userPosts[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: PostCard(
-                      controller: _communityController,
-                      post: post,
-                      index: index,
-                      onShowComments: _showCommentsDialog,
+              // Posts List
+              Obx(() {
+                if (isLoadingPosts.value) {
+                  return const SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
                   );
-                }, childCount: userPosts.length),
-              );
-            }),
+                }
 
-            // Bottom padding
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
-        ),
-      ),
-    );
+                if (userPosts.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: _buildEmptyPostsState(context, isCurrentUser),
+                  );
+                }
+
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final post = userPosts[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: PostCard(
+                        controller: _communityController,
+                        post: post,
+                        index: index,
+                        onShowComments: _showCommentsDialog,
+                      ),
+                    );
+                  }, childCount: userPosts.length),
+                );
+              }),
+
+              // Bottom padding
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
+          ), // CustomScrollView
+        ), // RefreshIndicator
+      ), // Container
+    ); // Scaffold
   }
 
   Widget _buildProfileHeader(BuildContext context, bool isCurrentUser) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.secondary,
-          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
         ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF6D83F2),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+            spreadRadius: -5,
+          ),
+        ],
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -462,21 +538,19 @@ class _UserProfileViewState extends State<UserProfileView> {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onPrimary.withOpacity(0.3),
+                  color: Colors.white.withOpacity(0.3),
                 ),
                 child: CircleAvatar(
                   radius: 50,
                   backgroundImage: widget.user.photoUrl.isNotEmpty
                       ? NetworkImage(widget.user.photoUrl)
                       : null,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  backgroundColor: Colors.white,
                   child: widget.user.photoUrl.isEmpty
-                      ? Icon(
+                      ? const Icon(
                           Icons.person,
                           size: 50,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Color(0xFF6D83F2),
                         )
                       : null,
                 ),
@@ -487,15 +561,16 @@ class _UserProfileViewState extends State<UserProfileView> {
               // Name
               Text(
                 widget.user.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
                 ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
               // Bio
               if (widget.user.bio.isNotEmpty) ...[
@@ -505,16 +580,18 @@ class _UserProfileViewState extends State<UserProfileView> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withOpacity(0.2),
+                    color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     widget.user.bio,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
@@ -536,11 +613,18 @@ class _UserProfileViewState extends State<UserProfileView> {
                       'Followers',
                     ),
                     Container(
-                      height: 30,
-                      width: 1,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withOpacity(0.3),
+                      height: 32,
+                      width: 1.5,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withOpacity(0.6),
+                            Colors.white.withOpacity(0.2),
+                          ],
+                        ),
+                      ),
                     ),
                     _buildStatColumn(
                       context,
@@ -548,11 +632,18 @@ class _UserProfileViewState extends State<UserProfileView> {
                       'Following',
                     ),
                     Container(
-                      height: 30,
-                      width: 1,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withOpacity(0.3),
+                      height: 32,
+                      width: 1.5,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withOpacity(0.6),
+                            Colors.white.withOpacity(0.2),
+                          ],
+                        ),
+                      ),
                     ),
                     _buildStatColumn(
                       context,
@@ -574,10 +665,10 @@ class _UserProfileViewState extends State<UserProfileView> {
       children: [
         Text(
           count,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onPrimary,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 4),
@@ -585,8 +676,9 @@ class _UserProfileViewState extends State<UserProfileView> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
-            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.9),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
       ],
@@ -598,51 +690,60 @@ class _UserProfileViewState extends State<UserProfileView> {
       padding: const EdgeInsets.all(32),
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF6D83F2).withOpacity(0.15),
+                  const Color(0xFF00C6FF).withOpacity(0.15),
+                ],
+              ),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.article_outlined,
-              size: 48,
-              color: Theme.of(context).colorScheme.primary,
+              size: 56,
+              color: Color(0xFF6D83F2),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           Text(
             isCurrentUser
                 ? 'No posts yet'
                 : '${widget.user.name} hasn\'t posted yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1A1D23),
+              letterSpacing: 0.3,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             isCurrentUser
                 ? 'Share your mental wellness journey with the community'
                 : 'Check back later to see their posts',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-              fontSize: 14,
+              color: Colors.grey[600],
+              fontSize: 15,
               height: 1.5,
+              fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
           ),

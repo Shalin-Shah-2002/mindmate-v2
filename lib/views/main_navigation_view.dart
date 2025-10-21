@@ -23,72 +23,79 @@ class MainNavigationView extends StatelessWidget {
 
     return Scaffold(
       extendBody: true,
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Obx(() => pages[navController.currentIndex.value]),
       bottomNavigationBar: Obx(() {
         final selected = navController.currentIndex.value;
-        return SafeArea(
-          minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: DecoratedBox(
-            // Outer gradient border similar to HomeView accents
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
-              ),
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6D83F2).withOpacity(0.25),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        return Container(
+          color: Colors.transparent,
+          child: SafeArea(
+            minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: DecoratedBox(
+              // Outer gradient border similar to HomeView accents
               decoration: BoxDecoration(
-                // Frosted-like surface
-                color: const Color(0xFF1F2228).withOpacity(0.92),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _NavItem(
-                    index: 0,
-                    selectedIndex: selected,
-                    activeIcon: Icons.home,
-                    inactiveIcon: Icons.home_outlined,
-                    label: 'Home',
-                    onTap: () => navController.changeTab(0),
-                  ),
-                  _NavItem(
-                    index: 1,
-                    selectedIndex: selected,
-                    activeIcon: Icons.menu_book,
-                    inactiveIcon: Icons.menu_book_outlined,
-                    label: 'Vocabulary',
-                    onTap: () => navController.changeTab(1),
-                  ),
-                  _NavItem(
-                    index: 2,
-                    selectedIndex: selected,
-                    activeIcon: Icons.chat_bubble,
-                    inactiveIcon: Icons.chat_bubble_outline,
-                    label: 'Chat',
-                    onTap: () => navController.changeTab(2),
-                  ),
-                  _NavItem(
-                    index: 3,
-                    selectedIndex: selected,
-                    activeIcon: Icons.person,
-                    inactiveIcon: Icons.person_outline,
-                    label: 'Profile',
-                    onTap: () => navController.changeTab(3),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                ),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6D83F2).withOpacity(0.25),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
                   ),
                 ],
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  // Frosted-like surface
+                  color: const Color(0xFF1F2228).withOpacity(0.92),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _NavItem(
+                      index: 0,
+                      selectedIndex: selected,
+                      activeIcon: Icons.home,
+                      inactiveIcon: Icons.home_outlined,
+                      label: 'Home',
+                      onTap: () => navController.changeTab(0),
+                    ),
+                    _NavItem(
+                      index: 1,
+                      selectedIndex: selected,
+                      activeIcon: Icons.menu_book,
+                      inactiveIcon: Icons.menu_book_outlined,
+                      label: 'Community',
+                      onTap: () => navController.changeTab(1),
+                    ),
+                    _NavItem(
+                      index: 2,
+                      selectedIndex: selected,
+                      activeIcon: Icons.chat_bubble,
+                      inactiveIcon: Icons.chat_bubble_outline,
+                      label: 'Chat',
+                      onTap: () => navController.changeTab(2),
+                    ),
+                    _NavItem(
+                      index: 3,
+                      selectedIndex: selected,
+                      activeIcon: Icons.person,
+                      inactiveIcon: Icons.person_outline,
+                      label: 'Profile',
+                      onTap: () => navController.changeTab(3),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

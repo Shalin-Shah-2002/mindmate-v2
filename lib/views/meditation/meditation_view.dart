@@ -3,7 +3,9 @@ import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../widgets/brand_ui.dart';
 
 class MeditationView extends StatefulWidget {
   final int initialTabIndex;
@@ -36,27 +38,51 @@ class _MeditationViewState extends State<MeditationView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meditation'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(icon: Icon(Icons.headphones), text: 'Guided'),
-            Tab(icon: Icon(Icons.self_improvement), text: 'Breathing'),
-            Tab(icon: Icon(Icons.timer), text: 'Timer'),
-            Tab(icon: Icon(Icons.format_quote), text: 'Quote'),
-          ],
-          isScrollable: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight + 48),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+            ),
+          ),
+          child: AppBar(
+            title: const Text(
+              'Meditation',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withOpacity(0.7),
+              indicatorWeight: 3,
+              tabs: const [
+                Tab(icon: Icon(Icons.headphones), text: 'Guided'),
+                Tab(icon: Icon(Icons.self_improvement), text: 'Breathing'),
+                Tab(icon: Icon(Icons.timer), text: 'Timer'),
+                Tab(icon: Icon(Icons.format_quote), text: 'Quote'),
+              ],
+              isScrollable: true,
+            ),
+          ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          GuidedMeditationTab(),
-          BreathingTab(),
-          TimerTab(),
-          QuoteTab(),
-        ],
+      body: BrandBackground(
+        child: TabBarView(
+          controller: _tabController,
+          children: const [
+            GuidedMeditationTab(),
+            BreathingTab(),
+            TimerTab(),
+            QuoteTab(),
+          ],
+        ),
       ),
     );
   }
@@ -86,37 +112,97 @@ class _GuidedMeditationTabState extends State<GuidedMeditationTab> {
       itemBuilder: (context, i) {
         final t = tracks[i];
         return Container(
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: ListTile(
-            leading: const Icon(Icons.spa),
-            title: Text(t.title),
-            subtitle: Text('${t.minutes} min guidance'),
-            trailing: ElevatedButton.icon(
-              onPressed: () async {
-                await showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.spa, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${t.minutes} min guidance',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () async {
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
+                        ),
+                        builder: (ctx) => _GuidedPlayerSheet(track: t),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.play_arrow, color: Colors.white, size: 20),
+                          SizedBox(width: 6),
+                          Text(
+                            'Start',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  builder: (ctx) => _GuidedPlayerSheet(track: t),
-                );
-              },
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Start'),
-            ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -392,18 +478,104 @@ class _BreathingTabState extends State<BreathingTab>
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: running ? null : _start,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Start'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: running
+                        ? null
+                        : const LinearGradient(
+                            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                          ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: running
+                        ? null
+                        : [
+                            BoxShadow(
+                              color: const Color(0xFF6D83F2).withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                  ),
+                  child: Material(
+                    color: running ? Colors.grey.shade300 : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: running ? null : _start,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.play_arrow,
+                              color: running
+                                  ? Colors.grey.shade600
+                                  : Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Start',
+                              style: TextStyle(
+                                color: running
+                                    ? Colors.grey.shade600
+                                    : Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: running ? _stop : null,
-                  icon: const Icon(Icons.stop),
-                  label: const Text('Stop'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: running
+                          ? const Color(0xFF6D83F2)
+                          : Colors.grey.shade300,
+                      width: 2,
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: running ? _stop : null,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.stop,
+                              color: running
+                                  ? const Color(0xFF6D83F2)
+                                  : Colors.grey.shade400,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Stop',
+                              style: TextStyle(
+                                color: running
+                                    ? const Color(0xFF6D83F2)
+                                    : Colors.grey.shade400,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -540,18 +712,104 @@ class _TimerTabState extends State<TimerTab> {
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: running ? null : _start,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Start'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: running
+                        ? null
+                        : const LinearGradient(
+                            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                          ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: running
+                        ? null
+                        : [
+                            BoxShadow(
+                              color: const Color(0xFF6D83F2).withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                  ),
+                  child: Material(
+                    color: running ? Colors.grey.shade300 : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: running ? null : _start,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.play_arrow,
+                              color: running
+                                  ? Colors.grey.shade600
+                                  : Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Start',
+                              style: TextStyle(
+                                color: running
+                                    ? Colors.grey.shade600
+                                    : Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: running ? _stop : null,
-                  icon: const Icon(Icons.stop),
-                  label: const Text('Stop'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: running
+                          ? const Color(0xFF6D83F2)
+                          : Colors.grey.shade300,
+                      width: 2,
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: running ? _stop : null,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.stop,
+                              color: running
+                                  ? const Color(0xFF6D83F2)
+                                  : Colors.grey.shade400,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Stop',
+                              style: TextStyle(
+                                color: running
+                                    ? const Color(0xFF6D83F2)
+                                    : Colors.grey.shade400,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../meditation/meditation_view.dart';
 import '../../services/youtube_service.dart';
 import 'youtube_player_view.dart';
+import '../../widgets/brand_ui.dart';
 
 class ResourcesView extends StatelessWidget {
   const ResourcesView({super.key});
@@ -12,17 +14,43 @@ class ResourcesView extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Resources'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Videos', icon: Icon(Icons.play_circle_outline)),
-              Tab(text: 'Articles', icon: Icon(Icons.menu_book_outlined)),
-              Tab(text: 'Tools', icon: Icon(Icons.build_outlined)),
-            ],
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight + 48),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+              ),
+            ),
+            child: AppBar(
+              title: const Text(
+                'Resources',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              bottom: const TabBar(
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                indicatorWeight: 3,
+                tabs: [
+                  Tab(text: 'Videos', icon: Icon(Icons.play_circle_outline)),
+                  Tab(text: 'Articles', icon: Icon(Icons.menu_book_outlined)),
+                  Tab(text: 'Tools', icon: Icon(Icons.build_outlined)),
+                ],
+              ),
+            ),
           ),
         ),
-        body: TabBarView(children: [_VideosTab(), _ArticlesTab(), _ToolsTab()]),
+        body: BrandBackground(
+          child: TabBarView(
+            children: [_VideosTab(), _ArticlesTab(), _ToolsTab()],
+          ),
+        ),
       ),
     );
   }
@@ -46,22 +74,73 @@ class _ResourceItem {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
-          child: Icon(icon, color: color, size: 20),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6D83F2).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Color(0xFF6D83F2),
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle),
-        trailing: Icon(Icons.chevron_right, color: Colors.grey[500], size: 20),
-        onTap: onTap,
       ),
     );
   }
@@ -76,34 +155,41 @@ Widget _section(
 }) {
   return Container(
     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(
-        color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
-      ),
-    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.folder_outlined, color: color),
+                child: const Icon(
+                  Icons.folder_outlined,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                  ).createShader(bounds),
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ],

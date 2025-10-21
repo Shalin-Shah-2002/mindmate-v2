@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -11,6 +12,23 @@ import 'services/chat_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Set system UI overlay style globally - white status bar with dark icons
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.black,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+
+  // Lock orientation to portrait
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   // Initialize overflow protection system
   OverflowHandler.initialize(debugOverflowEnabled: true);
@@ -44,13 +62,22 @@ class MindMateApp extends StatelessWidget {
 
     return GetBuilder<ThemeViewModel>(
       builder: (_) {
-        return GetMaterialApp(
-          title: 'MindMate',
-          themeMode: themeController.themeMode,
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          home: const SplashView(),
-          debugShowCheckedModeBanner: false,
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.white,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.black,
+            systemNavigationBarIconBrightness: Brightness.light,
+          ),
+          child: GetMaterialApp(
+            title: 'MindMate',
+            themeMode: themeController.themeMode,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            home: const SplashView(),
+            debugShowCheckedModeBanner: false,
+          ),
         );
       },
     );

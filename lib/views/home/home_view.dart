@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_glow/flutter_glow.dart';
 import 'package:shimmer/shimmer.dart';
@@ -7,6 +8,7 @@ import '../search/search_results_view.dart';
 import '../mood/mood_tracker_view.dart';
 import '../meditation/meditation_view.dart';
 import '../resources/resources_view.dart';
+import '../../services/sos_service.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -34,8 +36,9 @@ class HomeView extends StatelessWidget {
         ),
       ),
       child: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -77,7 +80,7 @@ class HomeView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Search Bar
+              // Search Bar - Modern Design
               GestureDetector(
                 onTap: () {
                   Get.to(
@@ -86,22 +89,72 @@ class HomeView extends StatelessWidget {
                     duration: const Duration(milliseconds: 300),
                   );
                 },
-                child: _gradientBorderContainer(
-                  borderRadius: 14,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
-                  ),
+                child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
                   ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF6D83F2).withValues(alpha: 0.08),
+                        const Color(0xFF00C6FF).withValues(alpha: 0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF6D83F2).withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.search, color: Color(0xFF6D83F2)),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.search_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Text(
-                        'Search for users...',
-                        style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                      Expanded(
+                        child: Text(
+                          'Search users, connect...',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          '⌘K',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -311,13 +364,31 @@ class HomeView extends StatelessWidget {
                               'assets/illustrations/SOS illustrations.png',
                           label: 'SOS Help',
                           color: Colors.red,
-                          onTap: () {
-                            // TODO: Wire to SOS view when available.
-                            Get.snackbar(
-                              'Coming Soon',
-                              'SOS feature will be available soon!',
-                              snackPosition: SnackPosition.BOTTOM,
+                          onTap: () async {
+                            final auth = Get.find<AuthViewModel>();
+                            final user = auth.userModel;
+                            if (user == null || user.sosContacts.isEmpty) {
+                              Get.snackbar(
+                                'No SOS Contacts',
+                                'Add SOS contacts in profile/settings first.',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
+                              return;
+                            }
+                            final phones = user.sosContacts
+                                .map((c) => c.phone)
+                                .toList();
+                            final sent = await SosService.sendGroupSms(
+                              phoneNumbers: phones,
+                              userName: user.name,
                             );
+                            if (!sent) {
+                              Get.snackbar(
+                                'Unable to open SMS',
+                                'Please check your messaging app permissions.',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
+                            }
                           },
                         ),
                       ],
