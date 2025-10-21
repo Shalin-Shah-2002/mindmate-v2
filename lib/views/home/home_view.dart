@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:flutter_glow/flutter_glow.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../search/search_results_view.dart';
@@ -441,7 +440,7 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  // Illustration action card with in-card label overlay
+  // Modern animated action card with glassmorphism and floating effects
   Widget _buildIllustrationActionCard({
     required String assetPath,
     required String label,
@@ -449,109 +448,11 @@ class HomeView extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final gradient = _cardGradientFromColor(color);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: GlowContainer(
-          glowColor: gradient.last.withValues(alpha: 0.4),
-          blurRadius: 8,
-          spreadRadius: 0.5,
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.transparent,
-          child: _gradientBorderContainer(
-            borderRadius: 14,
-            gradient: LinearGradient(colors: gradient),
-            padding: EdgeInsets.zero,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(13),
-              child: AspectRatio(
-                aspectRatio: 16 / 10,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Soft background in case the image has transparent areas
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            gradient.first.withValues(alpha: 0.15),
-                            gradient.last.withValues(alpha: 0.15),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: Image.asset(
-                          assetPath,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                              size: 28,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    // Bottom gradient scrim for text readability
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: IgnorePointer(
-                        child: Container(
-                          height: 46,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.20),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Label inside the card
-                    Positioned(
-                      left: 10,
-                      right: 10,
-                      bottom: 8,
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          height: 1.1,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black54,
-                              blurRadius: 2,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+    return _AnimatedActionCard(
+      gradient: gradient,
+      label: label,
+      assetPath: assetPath,
+      onTap: onTap,
     );
   }
 
@@ -620,38 +521,6 @@ class HomeView extends StatelessWidget {
             ],
           ),
           child: Center(child: Icon(icon, color: Colors.white, size: 18)),
-        ),
-      ),
-    );
-  }
-
-  Widget _gradientBorderContainer({
-    required Widget child,
-    required LinearGradient gradient,
-    double borderRadius = 12,
-    EdgeInsetsGeometry? padding,
-  }) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(1.5),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(borderRadius - 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: child,
         ),
       ),
     );
@@ -732,6 +601,207 @@ class HomeView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Clean, Sharp Animated Action Card with vibrant colors
+class _AnimatedActionCard extends StatefulWidget {
+  final List<Color> gradient;
+  final String label;
+  final String assetPath;
+  final VoidCallback onTap;
+
+  const _AnimatedActionCard({
+    required this.gradient,
+    required this.label,
+    required this.assetPath,
+    required this.onTap,
+  });
+
+  @override
+  State<_AnimatedActionCard> createState() => _AnimatedActionCardState();
+}
+
+class _AnimatedActionCardState extends State<_AnimatedActionCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.02,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _isPressed ? 0.95 : _scaleAnimation.value,
+          child: GestureDetector(
+            onTapDown: (_) => setState(() => _isPressed = true),
+            onTapUp: (_) {
+              setState(() => _isPressed = false);
+              widget.onTap();
+            },
+            onTapCancel: () => setState(() => _isPressed = false),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.gradient.last.withValues(alpha: 0.25),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                    spreadRadius: -5,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: AspectRatio(
+                  aspectRatio: 16 / 10,
+                  child: Stack(
+                    children: [
+                      // White background
+                      Container(color: Colors.white),
+                      // Gradient accent bar at bottom
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 4,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: widget.gradient,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Content
+                      Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Top section with gradient circle icon
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Label
+                                Expanded(
+                                  child: Text(
+                                    widget.label,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A1D23),
+                                      letterSpacing: 0.2,
+                                      height: 1.2,
+                                    ),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Gradient icon circle
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: widget.gradient,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Illustration - larger and centered
+                            Expanded(
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  child: Image.asset(
+                                    widget.assetPath,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: widget.gradient,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.image_outlined,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Press overlay
+                      if (_isPressed)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: widget.gradient.first.withValues(alpha: 0.1),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
