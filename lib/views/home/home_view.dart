@@ -665,135 +665,131 @@ class _AnimatedActionCardState extends State<_AnimatedActionCard>
             onTapCancel: () => setState(() => _isPressed = false),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(22),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [widget.gradient.first, widget.gradient.last],
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: widget.gradient.last.withValues(alpha: 0.25),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                    spreadRadius: -5,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: widget.gradient.last.withValues(alpha: 0.35),
+                    blurRadius: 24,
+                    offset: const Offset(0, 12),
+                    spreadRadius: -4,
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(22),
                 child: AspectRatio(
                   aspectRatio: 16 / 10,
                   child: Stack(
                     children: [
-                      // White background
-                      Container(color: Colors.white),
-                      // Gradient accent bar at bottom
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: widget.gradient,
-                            ),
+                      // Gradient background
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: widget.gradient,
                           ),
                         ),
                       ),
-                      // Content
-                      Padding(
-                        padding: const EdgeInsets.all(14.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Top section with gradient circle icon
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      // Decorative circles in background
+                      Positioned(
+                        right: -20,
+                        top: -20,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: -10,
+                        bottom: -10,
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
+                        ),
+                      ),
+                      // Main content
+                      Stack(
+                        children: [
+                          // Illustration - HUGE and centered
+                          Positioned.fill(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Image.asset(
+                                widget.assetPath,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.image_outlined,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                      size: 60,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          // Label with icon - overlay on top
+                          Positioned(
+                            top: 12,
+                            left: 12,
+                            right: 12,
+                            child: Row(
                               children: [
-                                // Label
                                 Expanded(
                                   child: Text(
                                     widget.label,
                                     style: const TextStyle(
                                       fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF1A1D23),
-                                      letterSpacing: 0.2,
-                                      height: 1.2,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 0.3,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black38,
+                                          blurRadius: 8,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
-                                    maxLines: 2,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                // Gradient icon circle
                                 Container(
-                                  width: 32,
-                                  height: 32,
+                                  padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: widget.gradient,
-                                    ),
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(
                                     Icons.arrow_forward_rounded,
                                     color: Colors.white,
-                                    size: 18,
+                                    size: 16,
                                   ),
                                 ),
                               ],
                             ),
-                            // Illustration - larger and centered
-                            Expanded(
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  child: Image.asset(
-                                    widget.assetPath,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        width: 48,
-                                        height: 48,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          gradient: LinearGradient(
-                                            colors: widget.gradient,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.image_outlined,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Press overlay
-                      if (_isPressed)
-                        Container(
-                          decoration: BoxDecoration(
-                            color: widget.gradient.first.withValues(alpha: 0.1),
                           ),
-                        ),
+                        ],
+                      ),
+                      // Press effect
+                      if (_isPressed)
+                        Container(color: Colors.black.withValues(alpha: 0.15)),
                     ],
                   ),
                 ),
