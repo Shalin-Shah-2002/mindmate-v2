@@ -44,7 +44,7 @@ class ProfileView extends StatelessWidget {
             slivers: [
               // App Bar with Profile Header
               SliverAppBar(
-                expandedHeight: 420,
+                expandedHeight: 440,
                 floating: false,
                 pinned: true,
                 elevation: 0,
@@ -214,29 +214,29 @@ class ProfileView extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
           child: Column(
             children: [
-              const SizedBox(height: 56), // Space for app bar & notch
+              const SizedBox(height: 52), // Space for app bar & notch
               // Profile Picture
               LayoutBuilder(
                 builder: (context, constraints) {
                   // Ensure avatar never clips; wrap with sized box
                   return SizedBox(
-                    height: 120,
+                    height: 110,
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
                         Align(
                           alignment: Alignment.center,
                           child: Container(
-                            padding: const EdgeInsets.all(4),
+                            padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.white.withOpacity(0.3),
                             ),
                             child: CircleAvatar(
-                              radius: 50,
+                              radius: 46,
                               backgroundImage:
                                   authController.userModel!.photoUrl.isNotEmpty
                                   ? NetworkImage(
@@ -247,7 +247,7 @@ class ProfileView extends StatelessWidget {
                               child: authController.userModel!.photoUrl.isEmpty
                                   ? const Icon(
                                       Icons.person,
-                                      size: 50,
+                                      size: 46,
                                       color: Color(0xFF6D83F2),
                                     )
                                   : null,
@@ -255,10 +255,10 @@ class ProfileView extends StatelessWidget {
                           ),
                         ),
                         Positioned(
-                          right: MediaQuery.of(context).size.width * 0.33,
-                          bottom: 4,
+                          right: MediaQuery.of(context).size.width * 0.34,
+                          bottom: 2,
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
@@ -275,7 +275,7 @@ class ProfileView extends StatelessWidget {
                             ),
                             child: const Icon(
                               Icons.camera_alt,
-                              size: 16,
+                              size: 15,
                               color: Colors.white,
                             ),
                           ),
@@ -286,30 +286,30 @@ class ProfileView extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Name
               Text(
                 authController.userModel!.name,
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                   letterSpacing: 0.3,
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
               // Bio
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                  horizontal: 14,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.3),
                     width: 1,
@@ -320,7 +320,7 @@ class ProfileView extends StatelessWidget {
                       ? authController.userModel!.bio
                       : 'Your mental wellness journey starts here ✨',
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
@@ -330,7 +330,7 @@ class ProfileView extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
 
               // Stats Row
               Row(
@@ -382,43 +382,91 @@ class ProfileView extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
-              // Manage SOS contacts
-              Align(
-                alignment: Alignment.center,
-                child: OutlinedButton.icon(
-                  onPressed: () async {
-                    // Try to open the platform contact picker via url scheme
-                    // Fallback to instructions if not supported.
-                    Get.dialog(
-                      AlertDialog(
-                        title: const Text('Add SOS Contacts'),
-                        content: const Text(
-                          'To add SOS contacts, pick numbers from your phone contacts '
-                          'and they will be saved to your profile. Coming soon: native contact picker.\n\n'
-                          'For now, please add them from settings or paste the numbers '
-                          'when prompted in the next screen.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Get.back(),
-                            child: const Text('Cancel'),
+              // Manage SOS contacts - Modern Button
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.4),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () async {
+                      // Try to open the platform contact picker via url scheme
+                      // Fallback to instructions if not supported.
+                      Get.dialog(
+                        AlertDialog(
+                          title: const Text('Add SOS Contacts'),
+                          content: const Text(
+                            'To add SOS contacts, pick numbers from your phone contacts '
+                            'and they will be saved to your profile. Coming soon: native contact picker.\n\n'
+                            'For now, please add them from settings or paste the numbers '
+                            'when prompted in the next screen.',
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Get.back();
-                              // Navigate to settings (or a dedicated SOS manager when available)
-                              Get.to(() => const SettingsView());
-                            },
-                            child: const Text('Open Settings'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Get.back();
+                                // Navigate to settings (or a dedicated SOS manager when available)
+                                Get.to(() => const SettingsView());
+                              },
+                              child: const Text('Open Settings'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.person_add_alt_1,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Add SOS Contacts',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.person_add_alt_1),
-                  label: const Text('Add SOS Contacts'),
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -54,26 +54,34 @@ class _AIChatViewState extends State<AIChatView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF9FBFF), // very light indigo tint
-              Color(0xFFF7FFFB), // very light mint tint
-            ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.black,
+      ),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFF9FBFF), // very light indigo tint
+                Color(0xFFF7FFFB), // very light mint tint
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
           child: Column(
             children: [
-              // Header
+              // Header with status bar
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  MediaQuery.of(context).padding.top + 16,
+                  16,
+                  16,
                 ),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -308,24 +316,27 @@ class _AIChatViewState extends State<AIChatView> {
 
               // Chat messages
               Expanded(
-                child: Obx(
-                  () => ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount:
-                        _chatController.messages.length +
-                        (_chatController.isTyping.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      // Show typing indicator
-                      if (index == _chatController.messages.length &&
-                          _chatController.isTyping.value) {
-                        return _buildTypingIndicator();
-                      }
+                child: SafeArea(
+                  top: false,
+                  child: Obx(
+                    () => ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount:
+                          _chatController.messages.length +
+                          (_chatController.isTyping.value ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        // Show typing indicator
+                        if (index == _chatController.messages.length &&
+                            _chatController.isTyping.value) {
+                          return _buildTypingIndicator();
+                        }
 
-                      return _buildMessageBubble(
-                        _chatController.messages[index],
-                      );
-                    },
+                        return _buildMessageBubble(
+                          _chatController.messages[index],
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -344,6 +355,7 @@ class _AIChatViewState extends State<AIChatView> {
                   ],
                 ),
                 child: SafeArea(
+                  top: false,
                   child: Row(
                     children: [
                       Expanded(

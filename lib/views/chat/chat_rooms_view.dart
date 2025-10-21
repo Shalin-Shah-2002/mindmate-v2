@@ -37,22 +37,28 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF9FBFF), // very light indigo tint
-              Color(0xFFF7FFFB), // very light mint tint
-            ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.black,
+      ),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFF9FBFF), // very light indigo tint
+                Color(0xFFF7FFFB), // very light mint tint
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
           child: Column(
             children: [
-              // Custom Header with gradient
+              // Custom Header with gradient extending to status bar
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -76,7 +82,12 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        MediaQuery.of(context).padding.top + 16,
+                        16,
+                        0,
+                      ),
                       child: Row(
                         children: [
                           _gradientText(
@@ -128,13 +139,16 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
                 ),
               ),
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildSupportGroupsTab(),
-                    _buildGeneralChatTab(),
-                    _buildMyRoomsTab(),
-                  ],
+                child: SafeArea(
+                  top: false,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildSupportGroupsTab(),
+                      _buildGeneralChatTab(),
+                      _buildMyRoomsTab(),
+                    ],
+                  ),
                 ),
               ),
             ],
