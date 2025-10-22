@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../views/auth/login_view.dart';
 import '../views/main_navigation_view.dart';
+import '../views/onboarding_view.dart';
 import '../services/auth_service.dart';
 
 class SplashViewModel extends GetxController {
@@ -46,20 +47,18 @@ class SplashViewModel extends GetxController {
           Get.offAll(() => const LoginView());
         }
       } else {
-        statusMessage.value = 'Ready to start!';
+        // No user signed in - always show onboarding
+        statusMessage.value = 'Welcome to MindMate!';
 
-        // No user signed in, go to login
         await Future.delayed(const Duration(milliseconds: 500));
-        Get.offAll(() => const LoginView());
+        Get.offAll(() => const OnboardingView());
       }
     } catch (e) {
-      // If Firebase is not initialized or there's an error, go to login
-      // Log error for debugging
-      // print('Error checking auth state: $e');
+      // If Firebase is not initialized or there's an error, show onboarding
       statusMessage.value = 'Starting fresh...';
 
       await Future.delayed(const Duration(milliseconds: 500));
-      Get.offAll(() => const LoginView());
+      Get.offAll(() => const OnboardingView());
     } finally {
       isInitializing.value = false;
     }

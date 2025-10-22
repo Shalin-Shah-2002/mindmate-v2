@@ -36,12 +36,34 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
       appBar: AppBar(
         title: const Text(
           'Messages',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
         actions: [
+          // Search button
+          IconButton(
+            onPressed: () => _showSearchDialog(),
+            icon: const Icon(Icons.search),
+            tooltip: 'Search conversations',
+          ),
+          
           // Unread count badge
           StreamBuilder<int>(
             stream: PrivateChatService.getTotalUnreadCount(),
@@ -53,13 +75,20 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
                 margin: const EdgeInsets.only(right: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.error,
+                  color: Colors.red.shade600,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Text(
                   unreadCount > 99 ? '99+' : unreadCount.toString(),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onError,
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -70,45 +99,27 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
         ],
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showNewMessageDialog(),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 8,
+        icon: const Icon(Icons.add),
+        label: const Text(
+          'New Message',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
       body: BrandBackground(
         child: StreamBuilder<List<PrivateConversation>>(
           stream: PrivateChatService.getConversationsStream(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error loading conversations',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Please try again later',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              return _buildErrorState(context);
             }
 
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return _buildLoadingState(context);
             }
 
             final conversations = snapshot.data ?? [];
@@ -122,15 +133,21 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
                 // Force refresh by rebuilding the stream
                 setState(() {});
               },
+              color: Theme.of(context).colorScheme.primary,
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.only(top: 8, bottom: 100),
                 itemCount: conversations.length,
                 itemBuilder: (context, index) {
                   final conversation = conversations[index];
-                  return _ConversationTile(
-                    conversation: conversation,
-                    currentUserId: _authController.userModel?.id ?? '',
-                    onTap: () => _openConversation(conversation),
+                  return AnimatedContainer(
+                    duration: Duration(milliseconds: 200 + (index * 50)),
+                    curve: Curves.easeOutCubic,
+                    child: _ConversationTile(
+                      conversation: conversation,
+                      currentUserId: _authController.userModel?.id ?? '',
+                      onTap: () => _openConversation(conversation),
+                      onLongPress: () => _showConversationOptions(conversation),
+                    ),
                   );
                 },
               ),
@@ -148,47 +165,60 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              size: 80,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.5),
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline,
+                size: 60,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Text(
               'No Messages Yet',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
-              'Start a conversation by visiting a user\'s profile and tapping the Message button.',
+              'Start meaningful conversations with people in your community.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                height: 1.5,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             ElevatedButton.icon(
-              onPressed: () => Get.back(),
+              onPressed: () => _showNewMessageDialog(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(30),
                 ),
+                elevation: 8,
+                shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
               ),
+              icon: const Icon(Icons.add),
+              label: const Text(
+                'Start a Conversation',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: () => Get.back(),
               icon: const Icon(Icons.people),
               label: const Text(
                 'Explore Community',
@@ -197,6 +227,200 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 50,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Something went wrong',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Unable to load your conversations. Please check your internet connection and try again.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () => setState(() {}),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+            strokeWidth: 3,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Loading your conversations...',
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSearchDialog() {
+    // TODO: Implement search functionality
+    Get.snackbar(
+      'Coming Soon',
+      'Search functionality will be available in the next update',
+      backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+      colorText: Colors.white,
+    );
+  }
+
+  void _showNewMessageDialog() {
+    // TODO: Implement new message dialog
+    Get.snackbar(
+      'Coming Soon',
+      'New message functionality will be available in the next update',
+      backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+      colorText: Colors.white,
+    );
+  }
+
+  void _showConversationOptions(PrivateConversation conversation) {
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Theme.of(Get.context!).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12, bottom: 20),
+                decoration: BoxDecoration(
+                  color: Theme.of(Get.context!).colorScheme.onSurface.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              ListTile(
+                leading: Icon(
+                  Icons.mark_chat_read,
+                  color: Theme.of(Get.context!).colorScheme.primary,
+                ),
+                title: const Text('Mark as Read'),
+                onTap: () {
+                  Get.back();
+                  PrivateChatService.markMessagesAsRead(conversation.id);
+                },
+              ),
+              
+              ListTile(
+                leading: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(Get.context!).colorScheme.error,
+                ),
+                title: Text(
+                  'Delete Conversation',
+                  style: TextStyle(
+                    color: Theme.of(Get.context!).colorScheme.error,
+                  ),
+                ),
+                onTap: () {
+                  Get.back();
+                  _confirmDeleteConversation(conversation);
+                },
+              ),
+              
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeleteConversation(PrivateConversation conversation) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Delete Conversation'),
+        content: const Text(
+          'Are you sure you want to delete this conversation? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              // TODO: Implement delete conversation
+              Get.snackbar(
+                'Coming Soon',
+                'Delete conversation functionality will be available in the next update',
+                backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+                colorText: Colors.white,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(Get.context!).colorScheme.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }
@@ -220,11 +444,13 @@ class _ConversationTile extends StatelessWidget {
   final PrivateConversation conversation;
   final String currentUserId;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const _ConversationTile({
     required this.conversation,
     required this.currentUserId,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -242,137 +468,213 @@ class _ConversationTile extends StatelessWidget {
 
         final otherUser = userSnapshot.data!;
 
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          elevation: hasUnread ? 4 : 1,
-          shadowColor: hasUnread
-              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
-              : null,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: hasUnread
-                ? BorderSide(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.3),
-                    width: 1,
-                  )
-                : BorderSide.none,
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: hasUnread
+                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.05),
+                blurRadius: hasUnread ? 8 : 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            leading: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
-                  backgroundImage: otherUser.photoUrl.isNotEmpty
-                      ? NetworkImage(otherUser.photoUrl)
-                      : null,
-                  child: otherUser.photoUrl.isEmpty
-                      ? Icon(
-                          Icons.person,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 24,
+          child: Material(
+            borderRadius: BorderRadius.circular(16),
+            color: hasUnread
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.05)
+                : Theme.of(context).colorScheme.surface,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: onTap,
+              onLongPress: onLongPress,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: hasUnread
+                      ? Border.all(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          width: 1.5,
                         )
                       : null,
                 ),
-                if (hasUnread)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.error,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.surface,
-                          width: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Avatar with online indicator
+                      Stack(
+                        children: [
+                          Hero(
+                            tag: 'avatar_${otherUser.id}',
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: hasUnread
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: CircleAvatar(
+                                radius: 28,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.1),
+                                backgroundImage: otherUser.photoUrl.isNotEmpty
+                                    ? NetworkImage(otherUser.photoUrl)
+                                    : null,
+                                child: otherUser.photoUrl.isEmpty
+                                    ? Text(
+                                        otherUser.name.isNotEmpty
+                                            ? otherUser.name[0].toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                          if (hasUnread)
+                            Positioned(
+                              right: 2,
+                              top: 2,
+                              child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.error,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Theme.of(context).colorScheme.surface,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      
+                      const SizedBox(width: 16),
+                      
+                      // Content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    otherUser.name,
+                                    style: TextStyle(
+                                      fontWeight: hasUnread ? FontWeight.bold : FontWeight.w600,
+                                      fontSize: 17,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  _formatTime(conversation.lastMessageAt),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: hasUnread
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.6),
+                                    fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: conversation.lastMessage.isNotEmpty
+                                      ? Text(
+                                          conversation.lastMessage,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: hasUnread
+                                                ? Theme.of(context).colorScheme.onSurface
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withValues(alpha: 0.7),
+                                            fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                                            fontSize: 15,
+                                            height: 1.3,
+                                          ),
+                                        )
+                                      : Text(
+                                          'No messages yet',
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.5),
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                ),
+                                if (hasUnread) ...[
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.error,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .error
+                                              .withValues(alpha: 0.3),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    constraints: const BoxConstraints(minWidth: 24),
+                                    child: Text(
+                                      unreadCount > 99 ? '99+' : unreadCount.toString(),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-              ],
-            ),
-            title: Text(
-              otherUser.name,
-              style: TextStyle(
-                fontWeight: hasUnread ? FontWeight.bold : FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            subtitle: conversation.lastMessage.isNotEmpty
-                ? Text(
-                    conversation.lastMessage,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
-                      fontWeight: hasUnread
-                          ? FontWeight.w500
-                          : FontWeight.normal,
-                    ),
-                  )
-                : Text(
-                    'No messages yet',
-                    style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.5),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  _formatTime(conversation.lastMessageAt),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: hasUnread
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.6),
-                    fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                    ],
                   ),
                 ),
-                if (hasUnread) ...[
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.error,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    constraints: const BoxConstraints(minWidth: 20),
-                    child: Text(
-                      unreadCount > 99 ? '99+' : unreadCount.toString(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onError,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
-            onTap: onTap,
           ),
         );
       },

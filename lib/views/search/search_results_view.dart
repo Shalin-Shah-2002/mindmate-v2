@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/search_viewmodel.dart';
+import '../../widgets/loading_animation.dart';
 import '../community/widgets/user_search_card.dart';
 import '../community/widgets/post_search_card.dart';
 import '../profile/user_profile_view.dart';
@@ -292,23 +292,9 @@ class SearchResultsView extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  const Color(0xFF6D83F2).withOpacity(0.15),
-                                  const Color(0xFF00C6FF).withOpacity(0.15),
-                                ],
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const CircularProgressIndicator(
-                              color: Color(0xFF6D83F2),
-                              strokeWidth: 3,
-                            ),
+                          const LoadingAnimation(
+                            size: 120,
+                            color: Color(0xFF6D83F2),
                           ),
                           const SizedBox(height: 24),
                           Text(

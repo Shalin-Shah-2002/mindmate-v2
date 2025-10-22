@@ -6,6 +6,8 @@ import '../models/private_conversation.dart';
 import '../models/user_report.dart';
 import '../services/chat_trust_service.dart';
 import '../services/chat_safety_service.dart';
+import '../services/notification_service.dart';
+import '../services/auth_service.dart';
 
 class ChatPermissionResult {
   final bool allowed;
@@ -258,6 +260,26 @@ class PrivateChatService {
         'lastMessageSenderId': currentUserId,
         'unreadCounts': updatedUnreadCounts,
       });
+
+      // Send notification to the recipient
+      try {
+        final authService = AuthService();
+        final senderProfile = await authService.getUserProfile(currentUserId);
+        if (senderProfile != null) {
+          await NotificationService.sendMessageNotification(
+            recipientId: otherUserId,
+            senderName: senderProfile.name,
+            senderId: currentUserId,
+            conversationId: conversationId,
+            messagePreview: content,
+          );
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('PrivateChatService: Error sending notification: $e');
+        }
+        // Don't fail message send if notification fails
+      }
 
       return const ChatSendResult(true);
     } catch (e) {

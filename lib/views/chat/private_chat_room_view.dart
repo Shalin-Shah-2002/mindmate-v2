@@ -395,40 +395,122 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withOpacity(0.1),
-                backgroundImage: otherUser?.photoUrl.isNotEmpty == true
-                    ? NetworkImage(otherUser!.photoUrl)
-                    : null,
-                child: otherUser?.photoUrl.isEmpty == true
-                    ? Icon(
-                        Icons.person,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 20,
-                      )
-                    : null,
+              Hero(
+                tag: 'avatar_${otherUser?.id ?? 'unknown'}',
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.1),
+                      backgroundImage: otherUser?.photoUrl.isNotEmpty == true
+                          ? NetworkImage(otherUser!.photoUrl)
+                          : null,
+                      child: otherUser?.photoUrl.isEmpty == true
+                          ? Text(
+                              otherUser?.name.isNotEmpty == true
+                                  ? otherUser!.name[0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : null,
+                    ),
+                    // Online indicator (placeholder)
+                    Positioned(
+                      right: 2,
+                      bottom: 2,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.surface,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 12),
               Flexible(
-                child: Text(
-                  otherUser?.name ?? 'Loading...',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      otherUser?.name ?? 'Loading...',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Online', // Placeholder for online status
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            onPressed: () {
+              // TODO: Implement voice call
+              Get.snackbar(
+                'Coming Soon',
+                'Voice call feature will be available soon',
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                colorText: Colors.white,
+              );
+            },
+            icon: const Icon(Icons.phone),
+            tooltip: 'Voice call',
+          ),
+          IconButton(
+            onPressed: () {
+              // TODO: Implement video call
+              Get.snackbar(
+                'Coming Soon',
+                'Video call feature will be available soon',
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                colorText: Colors.white,
+              );
+            },
+            icon: const Icon(Icons.videocam),
+            tooltip: 'Video call',
+          ),
           IconButton(
             onPressed: _showMoreOptions,
             icon: const Icon(Icons.more_vert),
@@ -438,7 +520,7 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Obx(() {
         if (isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return _buildLoadingState(context);
         }
 
         return Column(
@@ -447,27 +529,38 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
             Expanded(
               child: messages.isEmpty
                   ? _buildEmptyMessages(context)
-                  : ListView.builder(
-                      controller: _scrollController,
-                      reverse: true,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
-                        final isMe =
-                            message.senderId == _authController.userModel?.id;
-                        final showDateHeader = _shouldShowDateHeader(index);
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+                      ),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        reverse: true,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          final isMe = message.senderId == _authController.userModel?.id;
+                          final showDateHeader = _shouldShowDateHeader(index);
+                          final showAvatar = _shouldShowAvatar(index);
 
-                        return Column(
-                          children: [
-                            if (showDateHeader)
-                              _buildDateHeader(message.timestamp),
-                            _buildMessageBubble(message, isMe),
-                          ],
-                        );
-                      },
+                          return AnimatedContainer(
+                            duration: Duration(milliseconds: 300 + (index * 50)),
+                            curve: Curves.easeOutCubic,
+                            child: Column(
+                              children: [
+                                if (showDateHeader) _buildDateHeader(message.timestamp),
+                                _buildMessageBubble(message, isMe, showAvatar),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
             ),
+
+            // Typing indicator placeholder
+            _buildTypingIndicator(),
 
             // Message input
             _buildMessageInput(context),
@@ -484,32 +577,71 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline,
+                size: 50,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               'Start the conversation',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               'Send a message to ${otherUser?.name ?? 'this user'}',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                height: 1.5,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+            strokeWidth: 3,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Loading conversation...',
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypingIndicator() {
+    // Placeholder for typing indicator
+    return Container(
+      height: 0, // Hide for now, will implement later
+      child: const SizedBox.shrink(),
     );
   }
 
@@ -533,6 +665,19 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
     );
 
     return currentDate != nextDate;
+  }
+
+  bool _shouldShowAvatar(int index) {
+    if (index == 0) return true; // Always show for most recent message
+    
+    final currentMessage = messages[index];
+    final previousMessage = messages[index - 1];
+    
+    // Show avatar if sender changed or if there's a time gap
+    if (currentMessage.senderId != previousMessage.senderId) return true;
+    
+    final timeDiff = previousMessage.timestamp.difference(currentMessage.timestamp);
+    return timeDiff.inMinutes > 5; // Show avatar if messages are more than 5 minutes apart
   }
 
   Widget _buildDateHeader(DateTime timestamp) {
@@ -575,100 +720,234 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
     );
   }
 
-  Widget _buildMessageBubble(DirectMessage message, bool isMe) {
+  Widget _buildMessageBubble(DirectMessage message, bool isMe, bool showAvatar) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      margin: EdgeInsets.fromLTRB(
+        isMe ? 48 : 16,
+        2,
+        isMe ? 16 : 48,
+        showAvatar ? 8 : 2,
+      ),
       child: Row(
-        mainAxisAlignment: isMe
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe) ...[
+          if (!isMe && showAvatar) ...[
             CircleAvatar(
-              radius: 12,
-              backgroundColor: Theme.of(
-                Get.context!,
-              ).colorScheme.primary.withOpacity(0.1),
+              radius: 16,
+              backgroundColor: Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.1),
               backgroundImage: otherUser?.photoUrl.isNotEmpty == true
                   ? NetworkImage(otherUser!.photoUrl)
                   : null,
               child: otherUser?.photoUrl.isEmpty == true
-                  ? Icon(
-                      Icons.person,
-                      color: Theme.of(Get.context!).colorScheme.primary,
-                      size: 12,
+                  ? Text(
+                      otherUser?.name.isNotEmpty == true ? otherUser!.name[0].toUpperCase() : '?',
+                      style: TextStyle(
+                        color: Theme.of(Get.context!).colorScheme.primary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     )
                   : null,
             ),
             const SizedBox(width: 8),
+          ] else if (!isMe) ...[
+            const SizedBox(width: 40), // Space for avatar
           ],
+          
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: isMe
-                    ? Theme.of(Get.context!).colorScheme.primary
-                    : Theme.of(
-                        Get.context!,
-                      ).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(18).copyWith(
-                  bottomLeft: isMe
-                      ? const Radius.circular(18)
-                      : const Radius.circular(4),
-                  bottomRight: isMe
-                      ? const Radius.circular(4)
-                      : const Radius.circular(18),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      color: isMe
-                          ? Theme.of(Get.context!).colorScheme.onPrimary
-                          : Theme.of(Get.context!).colorScheme.onSurfaceVariant,
-                      fontSize: 16,
+            child: GestureDetector(
+              onLongPress: () => _showMessageOptions(message),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: isMe
+                      ? LinearGradient(
+                          colors: [
+                            Theme.of(Get.context!).colorScheme.primary,
+                            Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
+                  color: isMe
+                      ? null
+                      : Theme.of(Get.context!).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(20).copyWith(
+                    bottomLeft: isMe
+                        ? const Radius.circular(20)
+                        : (showAvatar ? const Radius.circular(4) : const Radius.circular(20)),
+                    bottomRight: isMe
+                        ? (showAvatar ? const Radius.circular(4) : const Radius.circular(20))
+                        : const Radius.circular(20),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _formatMessageTime(message.timestamp),
-                        style: TextStyle(
-                          color: isMe
-                              ? Theme.of(
-                                  Get.context!,
-                                ).colorScheme.onPrimary.withOpacity(0.7)
-                              : Theme.of(
-                                  Get.context!,
-                                ).colorScheme.onSurfaceVariant.withOpacity(0.7),
-                          fontSize: 12,
-                        ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message.content,
+                      style: TextStyle(
+                        color: isMe
+                            ? Colors.white
+                            : Theme.of(Get.context!).colorScheme.onSurfaceVariant,
+                        fontSize: 16,
+                        height: 1.4,
                       ),
-                      if (isMe) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          message.isRead ? Icons.done_all : Icons.done,
-                          size: 14,
-                          color: message.isRead
-                              ? Theme.of(Get.context!).colorScheme.onPrimary
-                              : Theme.of(
-                                  Get.context!,
-                                ).colorScheme.onPrimary.withOpacity(0.7),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _formatMessageTime(message.timestamp),
+                          style: TextStyle(
+                            color: isMe
+                                ? Colors.white.withValues(alpha: 0.8)
+                                : Theme.of(Get.context!).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
                         ),
+                        if (isMe) ...[
+                          const SizedBox(width: 6),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: Icon(
+                              message.isRead ? Icons.done_all : Icons.done,
+                              key: ValueKey(message.isRead),
+                              size: 16,
+                              color: message.isRead
+                                  ? Colors.blue.shade200
+                                  : Colors.white.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          if (isMe) const SizedBox(width: 32),
+        ],
+      ),
+    );
+  }
+
+  void _showMessageOptions(DirectMessage message) {
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Theme.of(Get.context!).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12, bottom: 20),
+                decoration: BoxDecoration(
+                  color: Theme.of(Get.context!).colorScheme.onSurface.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: const Text('Copy Message'),
+                onTap: () {
+                  Get.back();
+                  // TODO: Implement copy functionality
+                  Get.snackbar(
+                    'Copied',
+                    'Message copied to clipboard',
+                    backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+                    colorText: Colors.white,
+                  );
+                },
+              ),
+              
+              if (message.senderId == _authController.userModel?.id) ...[
+                ListTile(
+                  leading: const Icon(Icons.edit),
+                  title: const Text('Edit Message'),
+                  onTap: () {
+                    Get.back();
+                    // TODO: Implement edit functionality
+                    Get.snackbar(
+                      'Coming Soon',
+                      'Edit message functionality will be available soon',
+                      backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+                      colorText: Colors.white,
+                    );
+                  },
+                ),
+                
+                ListTile(
+                  leading: Icon(
+                    Icons.delete,
+                    color: Theme.of(Get.context!).colorScheme.error,
+                  ),
+                  title: Text(
+                    'Delete Message',
+                    style: TextStyle(
+                      color: Theme.of(Get.context!).colorScheme.error,
+                    ),
+                  ),
+                  onTap: () {
+                    Get.back();
+                    _confirmDeleteMessage(message);
+                  },
+                ),
+              ],
+              
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeleteMessage(DirectMessage message) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Delete Message'),
+        content: const Text('Are you sure you want to delete this message?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              // TODO: Implement delete message functionality
+              Get.snackbar(
+                'Coming Soon',
+                'Delete message functionality will be available soon',
+                backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+                colorText: Colors.white,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(Get.context!).colorScheme.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -676,86 +955,142 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
 
   Widget _buildMessageInput(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
-        ),
+        ],
       ),
       child: SafeArea(
         child: Row(
           children: [
-            Expanded(
-              child: TextField(
-                controller: _messageController,
-                focusNode: _inputFocusNode,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) {
-                  _sendMessage();
-                  _requestInputFocus();
+            // Attachment button
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () {
+                  // TODO: Implement attachment functionality
+                  Get.snackbar(
+                    'Coming Soon',
+                    'Attachment feature will be available soon',
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    colorText: Colors.white,
+                  );
                 },
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withOpacity(0.3),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withOpacity(0.3),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
+                icon: Icon(
+                  Icons.attach_file,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                maxLines: null,
-                minLines: 1,
+                tooltip: 'Attach file',
               ),
             ),
-            const SizedBox(width: 8),
-            Obx(
-              () => Container(
+            
+            const SizedBox(width: 12),
+            
+            // Text input
+            Expanded(
+              child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: TextField(
+                  controller: _messageController,
+                  focusNode: _inputFocusNode,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) {
+                    _sendMessage();
+                    _requestInputFocus();
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Type a message...',
+                    hintStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        // TODO: Implement emoji picker
+                        Get.snackbar(
+                          'Coming Soon',
+                          'Emoji picker will be available soon',
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          colorText: Colors.white,
+                        );
+                      },
+                      icon: Icon(
+                        Icons.emoji_emotions_outlined,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                      tooltip: 'Add emoji',
+                    ),
+                  ),
+                  maxLines: 4,
+                  minLines: 1,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+              ),
+            ),
+            
+            const SizedBox(width: 12),
+            
+            // Send button
+            Obx(
+              () => AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: IconButton(
                   onPressed: isSending.value ? null : _sendMessage,
-                  icon: isSending.value
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Theme.of(context).colorScheme.onPrimary,
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: isSending.value
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
+                          )
+                        : Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            key: ValueKey('send'),
                           ),
-                        )
-                      : Icon(
-                          Icons.send,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
+                  ),
+                  tooltip: 'Send message',
                 ),
               ),
             ),

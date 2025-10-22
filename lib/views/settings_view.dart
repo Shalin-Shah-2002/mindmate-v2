@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import 'resources/resources_view.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import 'profile/sos_contacts_view.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -128,19 +128,11 @@ class SettingsView extends StatelessWidget {
                 const Color(0xFFEF4444),
                 [
                   _buildSettingItem(
-                    'Emergency Contacts',
-                    'Set up your support network',
+                    'SOS Contacts',
+                    'Manage your emergency contacts',
                     Icons.emergency_outlined,
                     const Color(0xFFEF4444),
-                    () {
-                      Get.snackbar(
-                        'Coming Soon',
-                        'Emergency contacts management will be available soon!',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red.withOpacity(0.1),
-                        colorText: Colors.red[700],
-                      );
-                    },
+                    () => Get.to(() => const SosContactsView()),
                   ),
                   _buildSettingItem(
                     'Crisis Resources',

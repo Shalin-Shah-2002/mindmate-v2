@@ -9,6 +9,7 @@ import '../../services/chat_service.dart';
 import '../../services/chat_safety_service.dart';
 import '../../services/chat_trust_service.dart';
 import '../../services/crisis_intervention_service.dart';
+import '../../utils/constants.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 
 enum MessageDisplayStatus {
@@ -113,161 +114,90 @@ class _ChatRoomViewState extends State<ChatRoomView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF9FBFF), // very light indigo tint
-              Color(0xFFF7FFFB), // very light mint tint
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(),
-              if (_showCrisisHelp) _buildCrisisHelpBanner(),
-              if (_copingSuggestions.isNotEmpty)
-                _buildCopingSuggestionsBanner(),
-              Expanded(child: _buildMessagesList()),
-              _buildMessageComposer(),
-            ],
-          ),
-        ),
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          _buildSafetyBanner(),
+          if (_showCrisisHelp) _buildCrisisHelpBanner(),
+          if (_copingSuggestions.isNotEmpty) _buildCopingSuggestionsBanner(),
+          Expanded(child: _buildMessagesList()),
+          _buildMessageComposer(),
+        ],
       ),
       floatingActionButton: _buildPanicButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
     );
   }
 
-  Widget _buildAppBar() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF6D83F2), Color(0xFF00C6FF)],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFF6D83F2),
-            blurRadius: 16,
-            offset: Offset(0, 8),
-            spreadRadius: -4,
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF1565C0),
+      foregroundColor: Colors.white,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.room.name,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            '24/7 Professional Support',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.9),
+            ),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      actions: [
+        IconButton(
+          onPressed: _showRoomInfo,
+          icon: const Icon(Icons.healing),
+          tooltip: 'Support Resources',
+        ),
+        IconButton(
+          onPressed: _showSafetyMenu,
+          icon: const Icon(Icons.shield),
+          tooltip: 'Safety Tools',
+        ),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(4),
+        child: Container(
+          height: 4,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF4CAF50), Color(0xFF2196F3)],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSafetyBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade100, Colors.blue.shade100],
+        ),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+      ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-          ),
+          Icon(Icons.security, color: Colors.green.shade700, size: 20),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              widget.room.topic.emoji,
-              style: const TextStyle(fontSize: 20),
-            ),
-          ),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.room.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(Icons.people, size: 14, color: Colors.white70),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${widget.room.participantCount} members',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (widget.room.safetyLevel ==
-                        ChatRoomSafetyLevel.high) ...[
-                      const SizedBox(width: 12),
-                      const Icon(Icons.shield, size: 14, color: Colors.white70),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Moderated',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+            child: Text(
+              'Safe Space: All messages are monitored by AI for safety. Professional help is available 24/7.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.green.shade800,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: _showRoomInfo,
-            icon: const Icon(Icons.info_outline, color: Colors.white),
-            tooltip: 'Room Info',
-          ),
-          PopupMenuButton<String>(
-            onSelected: _handleMenuAction,
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'report',
-                child: Row(
-                  children: [
-                    Icon(Icons.report_outlined, size: 20),
-                    SizedBox(width: 12),
-                    Text('Report Issue'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'mute',
-                child: Row(
-                  children: [
-                    Icon(Icons.volume_off_outlined, size: 20),
-                    SizedBox(width: 12),
-                    Text('Mute Notifications'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'leave',
-                child: Row(
-                  children: [
-                    Icon(Icons.exit_to_app, size: 20),
-                    SizedBox(width: 12),
-                    Text('Leave Room'),
-                  ],
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -853,14 +783,25 @@ class _ChatRoomViewState extends State<ChatRoomView>
       child: FutureBuilder<UserChatProfile?>(
         future: ChatTrustService.getUserChatProfile(userId),
         builder: (context, snapshot) {
-          final trustLevel =
-              snapshot.data?.trustLevel ?? UserTrustLevel.newUser;
+          UserTrustLevel trustLevel;
+
+          // Safely get trust level with validation
+          try {
+            trustLevel = snapshot.data?.trustLevel ?? UserTrustLevel.newUser;
+            // Validate that the trust level is actually valid
+            if (!UserTrustLevel.values.contains(trustLevel)) {
+              trustLevel = UserTrustLevel.newUser;
+            }
+          } catch (e) {
+            print('Error getting trust level for user $userId: $e');
+            trustLevel = UserTrustLevel.newUser;
+          }
 
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'User ${userId.substring(0, 8)}',
+                StringUtils.formatUserDisplayName(userId),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -877,31 +818,40 @@ class _ChatRoomViewState extends State<ChatRoomView>
   }
 
   Widget _buildTrustLevelBadge(UserTrustLevel trustLevel) {
-    late Color color;
-    late IconData icon;
-    late String tooltip;
+    Color color;
+    IconData icon;
+    String tooltip;
 
-    switch (trustLevel) {
-      case UserTrustLevel.newUser:
-        color = Colors.grey[400]!;
-        icon = Icons.person_outline;
-        tooltip = 'New User - Messages are moderated';
-        break;
-      case UserTrustLevel.verified:
-        color = Colors.blue[500]!;
-        icon = Icons.verified_user_outlined;
-        tooltip = 'Verified User - Email verified';
-        break;
-      case UserTrustLevel.trusted:
-        color = Colors.green[600]!;
-        icon = Icons.shield_outlined;
-        tooltip = 'Trusted User - Established community member';
-        break;
-      case UserTrustLevel.mentor:
-        color = Colors.purple[600]!;
-        icon = Icons.school_outlined;
-        tooltip = 'Mentor - Trained in crisis support';
-        break;
+    // Safely handle the trust level with explicit validation
+    try {
+      switch (trustLevel) {
+        case UserTrustLevel.newUser:
+          color = Colors.grey[400]!;
+          icon = Icons.person_outline;
+          tooltip = 'New User - Messages are moderated';
+          break;
+        case UserTrustLevel.verified:
+          color = Colors.blue[500]!;
+          icon = Icons.verified_user_outlined;
+          tooltip = 'Verified User - Email verified';
+          break;
+        case UserTrustLevel.trusted:
+          color = Colors.green[600]!;
+          icon = Icons.shield_outlined;
+          tooltip = 'Trusted User - Established community member';
+          break;
+        case UserTrustLevel.mentor:
+          color = Colors.purple[600]!;
+          icon = Icons.school_outlined;
+          tooltip = 'Mentor - Trained in crisis support';
+          break;
+      }
+    } catch (e) {
+      // Fallback for any enum-related errors
+      print('Error in _buildTrustLevelBadge: $e, trustLevel: $trustLevel');
+      color = Colors.grey[400]!;
+      icon = Icons.person_outline;
+      tooltip = 'New User - Messages are moderated';
     }
 
     return Tooltip(
@@ -1566,110 +1516,124 @@ class _ChatRoomViewState extends State<ChatRoomView>
     }
   }
 
-  void _handleMenuAction(String action) {
-    switch (action) {
-      case 'report':
-        _showReportDialog();
-        break;
-      case 'mute':
-        _toggleMute();
-        break;
-      case 'leave':
-        _confirmLeaveRoom();
-        break;
-    }
+  void _showSafetyMenu() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Safety & Support Tools',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            _buildSafetyMenuItem(
+              'Emergency Hotlines',
+              'Quick access to crisis support',
+              Icons.phone,
+              _showRoomInfo,
+            ),
+            _buildSafetyMenuItem(
+              'Coping Strategies',
+              'Immediate relief techniques',
+              Icons.self_improvement,
+              _showCopingStrategies,
+            ),
+            _buildSafetyMenuItem(
+              'Safety Plan',
+              'Create your personal safety plan',
+              Icons.assignment,
+              _showSafetyPlan,
+            ),
+            _buildSafetyMenuItem(
+              'Report Concern',
+              'Report inappropriate content',
+              Icons.report,
+              _showReportDialog,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSafetyMenuItem(
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Colors.blue.shade100,
+        child: Icon(icon, color: Colors.blue.shade700),
+      ),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.arrow_forward_ios),
+      onTap: onTap,
+    );
+  }
+
+  void _showCopingStrategies() {
+    Get.back(); // Close bottom sheet
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Immediate Coping Strategies'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Try these techniques right now:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              Text('• Take 5 deep breaths (in for 4, hold for 4, out for 6)'),
+              Text(
+                '• Name 5 things you can see, 4 you can touch, 3 you can hear',
+              ),
+              Text('• Hold an ice cube or splash cold water on your face'),
+              Text('• Listen to calming music or nature sounds'),
+              Text('• Call a trusted friend or family member'),
+              Text('• Write down your feelings in a journal'),
+              Text('• Go for a walk or do gentle stretching'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Got it')),
+        ],
+      ),
+    );
+  }
+
+  void _showSafetyPlan() {
+    Get.back(); // Close bottom sheet
+    Get.snackbar(
+      'Safety Plan',
+      'Safety plan feature coming soon. For now, please save important numbers in your phone.',
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 4),
+    );
   }
 
   void _showReportDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Report Room'),
-        content: const Text(
-          'Report inappropriate behavior or content in this room.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implement room reporting
-              Get.snackbar(
-                'Report Submitted',
-                'Thank you for your report. We\'ll review it promptly.',
-                backgroundColor: Colors.green,
-                colorText: Colors.white,
-                snackPosition: SnackPosition.BOTTOM,
-              );
-            },
-            child: const Text('Submit Report'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _toggleMute() {
-    // TODO: Implement mute functionality
+    Get.back(); // Close bottom sheet
     Get.snackbar(
-      'Notifications Muted',
-      'You won\'t receive notifications from this room.',
-      backgroundColor: Colors.blue,
+      'Report Feature',
+      'Report functionality will be available soon. For immediate help, use emergency options.',
+      backgroundColor: Colors.orange,
       colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
-
-  void _confirmLeaveRoom() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Leave Room'),
-        content: Text('Are you sure you want to leave ${widget.room.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-
-              try {
-                final success = await ChatService.leaveChatRoom(widget.room.id);
-                if (success) {
-                  Get.back(); // Return to rooms list
-                  Get.snackbar(
-                    'Left Room',
-                    'You have left ${widget.room.name}',
-                    backgroundColor: Colors.blue[600],
-                    colorText: Colors.white,
-                    snackPosition: SnackPosition.BOTTOM,
-                    icon: const Icon(Icons.exit_to_app, color: Colors.white),
-                  );
-                } else {
-                  _showErrorSnackbar(
-                    'Unable to Leave Room',
-                    'Please try again later.',
-                  );
-                }
-              } catch (e) {
-                print('Error leaving room: $e');
-                _showErrorSnackbar(
-                  'Error Leaving Room',
-                  'An unexpected error occurred.',
-                );
-              }
-            },
-            child: const Text('Leave'),
-          ),
-        ],
-      ),
+      duration: const Duration(seconds: 4),
     );
   }
 

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user_model.dart';
 import '../../models/post_model.dart';
+import '../../utils/constants.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/community_viewmodel.dart';
 import '../../services/user_service.dart';
@@ -875,7 +875,7 @@ class _UserProfileViewState extends State<UserProfileView> {
                                       children: [
                                         TextSpan(
                                           text:
-                                              'User ${c.userId.substring(0, 8)} ',
+                                              '${StringUtils.formatUserDisplayName(c.userId)} ',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),

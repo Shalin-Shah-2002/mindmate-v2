@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import '../views/auth/profile_form_view.dart';
 import '../views/auth/login_view.dart';
 import '../views/main_navigation_view.dart';
@@ -83,6 +84,15 @@ class AuthViewModel extends GetxController {
       if (userProfile != null) {
         _userModel.value = userProfile;
         print('AuthViewModel: User profile loaded successfully');
+
+        // Update FCM token when user logs in
+        try {
+          await NotificationService.updateFCMToken();
+          print('AuthViewModel: Push identity synced (OneSignal)');
+        } catch (e) {
+          print('AuthViewModel: Error updating FCM token: $e');
+          // Don't fail login if FCM token update fails
+        }
       } else {
         print('AuthViewModel: No user profile found in Firestore');
         _userModel.value = null;
@@ -209,6 +219,15 @@ class AuthViewModel extends GetxController {
       isLoading.value = true;
       print('AuthViewModel: Starting sign out...');
 
+      // Delete FCM token before signing out
+      try {
+        await NotificationService.deleteFCMToken();
+        print('AuthViewModel: Push identity cleared (OneSignal)');
+      } catch (e) {
+        print('AuthViewModel: Error deleting FCM token: $e');
+        // Continue with sign out even if token deletion fails
+      }
+
       await _authService.signOut();
       print('AuthViewModel: Sign out completed');
 
@@ -248,5 +267,153 @@ class AuthViewModel extends GetxController {
   // Update user model (for manual profile loading)
   void updateUserModel(UserModel userModel) {
     _userModel.value = userModel;
+  }
+
+  // Add SOS Contact
+  Future<void> addSosContact(SosContact contact) async {
+    if (_userModel.value == null) {
+      throw Exception('No user logged in');
+    }
+
+    try {
+      isLoading.value = true;
+
+      // Create updated list of contacts
+      final updatedContacts = List<SosContact>.from(
+        _userModel.value!.sosContacts,
+      )..add(contact);
+
+      // Update user model
+      final updatedUser = UserModel(
+        id: _userModel.value!.id,
+        name: _userModel.value!.name,
+        email: _userModel.value!.email,
+        photoUrl: _userModel.value!.photoUrl,
+        bio: _userModel.value!.bio,
+        dob: _userModel.value!.dob,
+        moodPreferences: _userModel.value!.moodPreferences,
+        createdAt: _userModel.value!.createdAt,
+        sosContacts: updatedContacts,
+        followers: _userModel.value!.followers,
+        following: _userModel.value!.following,
+        isPrivate: _userModel.value!.isPrivate,
+        settings: _userModel.value!.settings,
+      );
+
+      // Save to Firebase
+      final success = await _authService.saveUserProfile(updatedUser);
+
+      if (success) {
+        _userModel.value = updatedUser;
+        print('AuthViewModel: SOS contact added successfully');
+      } else {
+        throw Exception('Failed to save SOS contact');
+      }
+    } catch (e) {
+      print('AuthViewModel: Error adding SOS contact: $e');
+      errorMessage.value = 'Failed to add SOS contact';
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Update SOS Contact
+  Future<void> updateSosContact(int index, SosContact contact) async {
+    if (_userModel.value == null) {
+      throw Exception('No user logged in');
+    }
+
+    try {
+      isLoading.value = true;
+
+      // Create updated list of contacts
+      final updatedContacts = List<SosContact>.from(
+        _userModel.value!.sosContacts,
+      );
+      updatedContacts[index] = contact;
+
+      // Update user model
+      final updatedUser = UserModel(
+        id: _userModel.value!.id,
+        name: _userModel.value!.name,
+        email: _userModel.value!.email,
+        photoUrl: _userModel.value!.photoUrl,
+        bio: _userModel.value!.bio,
+        dob: _userModel.value!.dob,
+        moodPreferences: _userModel.value!.moodPreferences,
+        createdAt: _userModel.value!.createdAt,
+        sosContacts: updatedContacts,
+        followers: _userModel.value!.followers,
+        following: _userModel.value!.following,
+        isPrivate: _userModel.value!.isPrivate,
+        settings: _userModel.value!.settings,
+      );
+
+      // Save to Firebase
+      final success = await _authService.saveUserProfile(updatedUser);
+
+      if (success) {
+        _userModel.value = updatedUser;
+        print('AuthViewModel: SOS contact updated successfully');
+      } else {
+        throw Exception('Failed to update SOS contact');
+      }
+    } catch (e) {
+      print('AuthViewModel: Error updating SOS contact: $e');
+      errorMessage.value = 'Failed to update SOS contact';
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Remove SOS Contact
+  Future<void> removeSosContact(int index) async {
+    if (_userModel.value == null) {
+      throw Exception('No user logged in');
+    }
+
+    try {
+      isLoading.value = true;
+
+      // Create updated list of contacts
+      final updatedContacts = List<SosContact>.from(
+        _userModel.value!.sosContacts,
+      )..removeAt(index);
+
+      // Update user model
+      final updatedUser = UserModel(
+        id: _userModel.value!.id,
+        name: _userModel.value!.name,
+        email: _userModel.value!.email,
+        photoUrl: _userModel.value!.photoUrl,
+        bio: _userModel.value!.bio,
+        dob: _userModel.value!.dob,
+        moodPreferences: _userModel.value!.moodPreferences,
+        createdAt: _userModel.value!.createdAt,
+        sosContacts: updatedContacts,
+        followers: _userModel.value!.followers,
+        following: _userModel.value!.following,
+        isPrivate: _userModel.value!.isPrivate,
+        settings: _userModel.value!.settings,
+      );
+
+      // Save to Firebase
+      final success = await _authService.saveUserProfile(updatedUser);
+
+      if (success) {
+        _userModel.value = updatedUser;
+        print('AuthViewModel: SOS contact removed successfully');
+      } else {
+        throw Exception('Failed to remove SOS contact');
+      }
+    } catch (e) {
+      print('AuthViewModel: Error removing SOS contact: $e');
+      errorMessage.value = 'Failed to remove SOS contact';
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

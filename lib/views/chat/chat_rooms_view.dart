@@ -7,6 +7,7 @@ import '../../viewmodels/auth_viewmodel.dart';
 import '../chat/private_chat_list_view.dart';
 import '../../services/private_chat_service.dart';
 import 'crisis_support_chat_view.dart';
+import 'chat_room_view.dart';
 import '../../widgets/brand_ui.dart';
 
 class ChatRoomsView extends StatefulWidget {
@@ -441,7 +442,7 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _getTopicColor(room.topic).withOpacity(0.2),
+          color: const Color(0xFF1565C0).withOpacity(0.2),
           width: 1,
         ),
         boxShadow: [
@@ -457,29 +458,32 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
         child: InkWell(
           onTap: () => _showRoomDetails(room),
           borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Column(
+            children: [
+              // Blue header bar similar to crisis support
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF1565C0), Color(0xFF2196F3)],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            _getTopicColor(room.topic).withOpacity(0.15),
-                            _getTopicColor(room.topic).withOpacity(0.08),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         room.topic.emoji,
-                        style: const TextStyle(fontSize: 24),
+                        style: const TextStyle(fontSize: 20),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -490,65 +494,17 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
                           Text(
                             room.name,
                             style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1D23),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.people,
-                                size: 16,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${room.participantCount}/${room.maxParticipants}',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              if (room.safetyLevel == ChatRoomSafetyLevel.high)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.green.withOpacity(0.15),
-                                        Colors.green.withOpacity(0.08),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.shield,
-                                        size: 12,
-                                        color: Colors.green[700],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Moderated',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.green[700],
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
+                          Text(
+                            '24/7 Professional Support',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
                           ),
                         ],
                       ),
@@ -556,62 +512,148 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
                     if (showLeaveOption)
                       IconButton(
                         onPressed: () => _leaveRoom(room),
-                        icon: const Icon(Icons.exit_to_app),
-                        color: Colors.grey[600],
+                        icon: const Icon(
+                          Icons.exit_to_app,
+                          color: Colors.white,
+                        ),
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  room.description,
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (room.isFull)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Container(
+              ),
+              // White content area
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Safety banner strip
+                    Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 6,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            Colors.orange.withOpacity(0.15),
-                            Colors.orange.withOpacity(0.08),
-                          ],
+                          colors: [Colors.green.shade100, Colors.blue.shade100],
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.info_outline,
+                            Icons.security,
+                            color: Colors.green.shade700,
                             size: 16,
-                            color: Colors.orange[700],
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            'Room is full',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange[700],
-                              fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: Text(
+                              'Safe, monitored environment with professional support',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.green.shade800,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-              ],
-            ),
+                    const SizedBox(height: 12),
+                    Text(
+                      room.description,
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(Icons.people, size: 16, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${room.participantCount}/${room.maxParticipants} members',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (room.safetyLevel == ChatRoomSafetyLevel.high)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.shield,
+                                  size: 12,
+                                  color: Colors.green[700],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Moderated',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.green[700],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (room.isFull)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.people,
+                                size: 14,
+                                color: Colors.orange[700],
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Room Full',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange[700],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -955,8 +997,8 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
         if (room.topic == ChatRoomTopic.crisisSupport) {
           Get.to(() => CrisisSupportChatView(room: room));
         } else {
-          // TODO: Navigate to regular chat room interface for other room types
-          _showComingSoonDialog('Chat Interface');
+          // Navigate to regular chat room interface for other room types
+          Get.to(() => ChatRoomView(room: room));
         }
       } else {
         Get.snackbar(
@@ -1012,30 +1054,6 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
     }
   }
 
-  void _showComingSoonDialog(String feature) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(
-              Icons.rocket_launch,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 12),
-            const Text('Coming Soon!'),
-          ],
-        ),
-        content: Text(
-          '$feature is being developed with advanced safety features and will be available soon.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Got it!')),
-        ],
-      ),
-    );
-  }
-
   void _openRoom(ChatRoom room) {
     // Navigate to the appropriate chat interface depending on topic/type
     if (room.topic == ChatRoomTopic.crisisSupport) {
@@ -1043,7 +1061,7 @@ class _ChatRoomsViewState extends State<ChatRoomsView>
       Get.to(() => CrisisSupportChatView(room: room));
     } else {
       Get.back();
-      _showComingSoonDialog('Chat Interface');
+      Get.to(() => ChatRoomView(room: room));
     }
   }
 }

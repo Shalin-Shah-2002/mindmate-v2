@@ -398,7 +398,9 @@ class _CrisisSupportChatViewState extends State<CrisisSupportChatView> {
               radius: 16,
               backgroundColor: Colors.blue.shade100,
               child: Text(
-                message.senderId.substring(0, 1).toUpperCase(),
+                message.senderId.isNotEmpty 
+                    ? message.senderId.substring(0, 1).toUpperCase()
+                    : '?',
                 style: TextStyle(
                   color: Colors.blue.shade700,
                   fontWeight: FontWeight.bold,

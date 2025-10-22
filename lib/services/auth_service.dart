@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
+import 'notification_service.dart';
 
 class AuthService {
   // Direct initialization since Firebase is now properly configured
@@ -233,6 +234,22 @@ class AuthService {
       });
 
       await batch.commit();
+
+      // Send notification to the user being followed
+      try {
+        final currentUserProfile = await getUserProfile(currentUserId);
+        if (currentUserProfile != null) {
+          await NotificationService.sendFollowNotification(
+            targetUserId: targetUserId,
+            followerName: currentUserProfile.name,
+            followerId: currentUserId,
+          );
+        }
+      } catch (e) {
+        print('Error sending follow notification: $e');
+        // Don't fail the follow operation if notification fails
+      }
+
       return true;
     } catch (e) {
       print('Error following user: $e');

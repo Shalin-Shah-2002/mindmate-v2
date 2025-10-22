@@ -11,10 +11,15 @@ enum UserTrustLevel {
   final int level;
 
   static UserTrustLevel fromString(String value) {
-    return UserTrustLevel.values.firstWhere(
-      (level) => level.value == value,
-      orElse: () => UserTrustLevel.newUser,
-    );
+    try {
+      return UserTrustLevel.values.firstWhere(
+        (level) => level.value == value,
+        orElse: () => UserTrustLevel.newUser,
+      );
+    } catch (e) {
+      print('Error parsing UserTrustLevel from string "$value": $e');
+      return UserTrustLevel.newUser;
+    }
   }
 
   // Trust level progression requirements

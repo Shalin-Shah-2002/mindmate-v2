@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../meditation/meditation_view.dart';
 import '../../services/youtube_service.dart';
 import 'youtube_player_view.dart';
 import '../../widgets/brand_ui.dart';
+import '../../widgets/loading_animation.dart';
 
 class ResourcesView extends StatelessWidget {
   const ResourcesView({super.key});
@@ -249,7 +249,7 @@ class _VideosTabState extends State<_VideosTab> {
           return Column(
             children: [
               _buildChips(context),
-              const Expanded(child: Center(child: CircularProgressIndicator())),
+              const Expanded(child: Center(child: InlineLoading())),
             ],
           );
         }

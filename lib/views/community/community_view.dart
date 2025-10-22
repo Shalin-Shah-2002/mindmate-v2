@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../utils/constants.dart';
 import '../../viewmodels/community_viewmodel.dart';
 import '../../models/post_model.dart';
 import 'widgets/group_card.dart';
@@ -392,7 +392,7 @@ class CommunityView extends StatelessWidget {
                                       children: [
                                         TextSpan(
                                           text:
-                                              'User ${c.userId.substring(0, 8)}  ',
+                                              '${StringUtils.formatUserDisplayName(c.userId)}  ',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                           ),

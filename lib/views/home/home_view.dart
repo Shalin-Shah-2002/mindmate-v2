@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../search/search_results_view.dart';
@@ -58,21 +57,52 @@ class HomeView extends StatelessWidget {
                       letterSpacing: 0.3,
                     ),
                   ),
-                  Obx(
-                    () => authController.isLoading.value
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : _gradientIconButton(
-                            icon: Icons.logout,
-                            onTap: () => authController.signOut(),
-                            colors: const [
-                              Color(0xFF8E97FD),
-                              Color(0xFF6D83F2),
-                            ],
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _gradientIconButton(
+                        icon: Icons.notifications_rounded,
+                        onTap: () {
+                          // TODO: Navigate to notifications screen
+                          Get.snackbar(
+                            '🔔 Notifications',
+                            'No new notifications',
+                            snackPosition: SnackPosition.TOP,
+                            duration: const Duration(seconds: 2),
+                            backgroundColor: const Color(0xFF6D83F2),
+                            colorText: Colors.white,
+                            borderRadius: 12,
+                            margin: const EdgeInsets.all(16),
+                          );
+                        },
+                        colors: const [Color(0xFF6D83F2), Color(0xFF00C6FF)],
+                      ),
+                      // Notification badge
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
                           ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: const Text(
+                            '3',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

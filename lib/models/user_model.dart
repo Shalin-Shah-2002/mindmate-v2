@@ -62,6 +62,8 @@ class UserModel {
   final bool isPrivate;
   final List<SosContact> sosContacts;
   final UserSettings settings;
+  final String? fcmToken;
+  final DateTime? fcmTokenUpdatedAt;
 
   UserModel({
     required this.id,
@@ -77,6 +79,8 @@ class UserModel {
     required this.isPrivate,
     required this.sosContacts,
     required this.settings,
+    this.fcmToken,
+    this.fcmTokenUpdatedAt,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
@@ -135,6 +139,8 @@ class UserModel {
               fontSize: 'medium',
               ttsEnabled: false,
             ),
+      fcmToken: map['fcmToken'] as String?,
+      fcmTokenUpdatedAt: parseDate(map['fcmTokenUpdatedAt']),
     );
   }
 
@@ -152,6 +158,9 @@ class UserModel {
       'isPrivate': isPrivate,
       'sosContacts': sosContacts.map((e) => e.toMap()).toList(),
       'settings': settings.toMap(),
+      if (fcmToken != null) 'fcmToken': fcmToken,
+      if (fcmTokenUpdatedAt != null)
+        'fcmTokenUpdatedAt': fcmTokenUpdatedAt!.toIso8601String(),
     };
   }
 }

@@ -90,9 +90,11 @@ class _GroupChatViewState extends State<GroupChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: _buildAppBar(),
       body: Column(
         children: [
+          _buildSafetyBanner(),
           if (_currentViolationWarning != null)
             SafetyWarningBanner(
               message: _currentViolationWarning!,
@@ -102,47 +104,26 @@ class _GroupChatViewState extends State<GroupChatView> {
           _buildMessageInput(),
         ],
       ),
+      floatingActionButton: _buildEmergencyFAB(),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black87,
-      elevation: 1,
-      title: Row(
+      backgroundColor: const Color(0xFF1565C0),
+      foregroundColor: Colors.white,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                widget.group.category.emoji,
-                style: const TextStyle(fontSize: 20),
-              ),
-            ),
+          Text(
+            widget.group.name,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.group.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  widget.group.displayMemberCount,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
+          Text(
+            '24/7 Professional Support',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.9),
             ),
           ),
         ],
@@ -150,44 +131,26 @@ class _GroupChatViewState extends State<GroupChatView> {
       actions: [
         IconButton(
           onPressed: _showGroupInfo,
-          icon: const Icon(Icons.info_outline),
+          icon: const Icon(Icons.healing),
+          tooltip: 'Support Resources',
         ),
-        PopupMenuButton<String>(
-          onSelected: _handleMenuAction,
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'members',
-              child: Row(
-                children: [
-                  Icon(Icons.people),
-                  SizedBox(width: 8),
-                  Text('Members'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'settings',
-              child: Row(
-                children: [
-                  Icon(Icons.settings),
-                  SizedBox(width: 8),
-                  Text('Settings'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'leave',
-              child: Row(
-                children: [
-                  Icon(Icons.exit_to_app, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Leave Group', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
+        IconButton(
+          onPressed: _showSafetyMenu,
+          icon: const Icon(Icons.shield),
+          tooltip: 'Safety Tools',
         ),
       ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(4),
+        child: Container(
+          height: 4,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF4CAF50), Color(0xFF2196F3)],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -674,89 +637,144 @@ class _GroupChatViewState extends State<GroupChatView> {
     );
   }
 
-  void _handleMenuAction(String action) {
-    switch (action) {
-      case 'members':
-        _showMembersList();
-        break;
-      case 'settings':
-        _showGroupSettings();
-        break;
-      case 'leave':
-        _showLeaveGroupDialog();
-        break;
-    }
+  Widget _buildSafetyBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade100, Colors.blue.shade100],
+        ),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.security, color: Colors.green.shade700, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Safe Space: All messages are monitored by AI for safety. Professional help is available 24/7.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.green.shade800,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  void _showMembersList() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        height: MediaQuery.of(context).size.height * 0.8,
-        child: Column(
+  Widget _buildEmergencyFAB() {
+    return FloatingActionButton.extended(
+      onPressed: _triggerEmergencyMode,
+      backgroundColor: Colors.red.shade600,
+      foregroundColor: Colors.white,
+      icon: const Icon(Icons.emergency),
+      label: const Text('Emergency'),
+    );
+  }
+
+  void _triggerEmergencyMode() {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.emergency, color: Colors.red.shade600),
+            const SizedBox(width: 12),
+            const Text('Immediate Help Available'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Members (${widget.group.displayMemberCount})',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              'We\'re here to help you through this crisis. You have several options for immediate support:',
+              style: TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: StreamBuilder<List<GroupMember>>(
-                stream: GroupService.getGroupMembers(widget.group.id),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const Center(child: Text('Error loading members'));
-                  }
-
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  final members = snapshot.data!;
-
-                  return ListView.builder(
-                    itemCount: members.length,
-                    itemBuilder: (context, index) {
-                      final member = members[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.1),
-                          child: Text(
-                            member.displayName[0].toUpperCase(),
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        title: Text(member.displayName),
-                        subtitle: Text(member.role.displayName),
-                        trailing: member.role == GroupMemberRole.owner
-                            ? const Icon(Icons.star, color: Colors.amber)
-                            : member.role == GroupMemberRole.admin
-                            ? const Icon(
-                                Icons.admin_panel_settings,
-                                color: Colors.blue,
-                              )
-                            : member.role == GroupMemberRole.moderator
-                            ? const Icon(
-                                Icons.verified_user,
-                                color: Colors.green,
-                              )
-                            : null,
-                      );
-                    },
-                  );
-                },
+            SizedBox(height: 16),
+            Text(
+              '• Call Tele-MANAS: 14416 or 1-800-891-4416 (24/7)\n'
+              '• Call 112 if you\'re in immediate danger\n'
+              '• Continue chatting here with AI support',
+              style: TextStyle(height: 1.5),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => _callEmergencyNumber('14416'),
+            child: Text(
+              'Call Tele-MANAS 14416',
+              style: TextStyle(
+                color: Colors.red.shade600,
+                fontWeight: FontWeight.bold,
               ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Continue Chat'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  void _callEmergencyNumber(String number) {
+    Get.snackbar(
+      'Emergency Call',
+      'Calling $number...',
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+    );
+  }
+
+  void _showSafetyMenu() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Safety & Support Tools',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            _buildSafetyMenuItem(
+              'Emergency Hotlines',
+              'Quick access to crisis support',
+              Icons.phone,
+              _showGroupInfo,
+            ),
+            _buildSafetyMenuItem(
+              'Coping Strategies',
+              'Immediate relief techniques',
+              Icons.self_improvement,
+              _showCopingStrategies,
+            ),
+            _buildSafetyMenuItem(
+              'Safety Plan',
+              'Create your personal safety plan',
+              Icons.assignment,
+              _showSafetyPlan,
+            ),
+            _buildSafetyMenuItem(
+              'Report Concern',
+              'Report inappropriate content',
+              Icons.report,
+              _showReportDialog,
             ),
           ],
         ),
@@ -764,35 +782,77 @@ class _GroupChatViewState extends State<GroupChatView> {
     );
   }
 
-  void _showGroupSettings() {
-    Get.snackbar(
-      'Coming Soon',
-      'Group settings will be available in a future update.',
-      backgroundColor: Colors.blue.shade600,
-      colorText: Colors.white,
+  Widget _buildSafetyMenuItem(
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Colors.blue.shade100,
+        child: Icon(icon, color: Colors.blue.shade700),
+      ),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.arrow_forward_ios),
+      onTap: onTap,
     );
   }
 
-  void _showLeaveGroupDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Leave Group'),
-        content: Text('Are you sure you want to leave ${widget.group.name}?'),
+  void _showCopingStrategies() {
+    Get.back(); // Close bottom sheet
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Immediate Coping Strategies'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Try these techniques right now:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              Text('• Take 5 deep breaths (in for 4, hold for 4, out for 6)'),
+              Text(
+                '• Name 5 things you can see, 4 you can touch, 3 you can hear',
+              ),
+              Text('• Hold an ice cube or splash cold water on your face'),
+              Text('• Listen to calming music or nature sounds'),
+              Text('• Call a trusted friend or family member'),
+              Text('• Write down your feelings in a journal'),
+              Text('• Go for a walk or do gentle stretching'),
+            ],
+          ),
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _leaveGroup();
-            },
-            child: const Text('Leave', style: TextStyle(color: Colors.red)),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Got it')),
         ],
       ),
+    );
+  }
+
+  void _showSafetyPlan() {
+    Get.back(); // Close bottom sheet
+    Get.snackbar(
+      'Safety Plan',
+      'Safety plan feature coming soon. For now, please save important numbers in your phone.',
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 4),
+    );
+  }
+
+  void _showReportDialog() {
+    Get.back(); // Close bottom sheet
+    Get.snackbar(
+      'Report Feature',
+      'Report functionality will be available soon. For immediate help, use emergency options.',
+      backgroundColor: Colors.orange,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 4),
     );
   }
 

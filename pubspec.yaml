@@ -65,6 +65,14 @@ dependencies:
   youtube_player_iframe: ^5.2.2
   flutter_glow: ^0.3.2
   shimmer: ^3.0.0
+  flutter_contacts: ^1.1.9
+  animated_text_kit: ^4.2.2
+  
+  # Push Notifications (OneSignal)
+  onesignal_flutter: ^5.1.3
+  
+  # Supabase (for notifications only)
+  supabase_flutter: ^2.6.0
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +90,9 @@ dev_dependencies:
   
   # App icon generation
   flutter_launcher_icons: ^0.13.1
+  
+  # Native splash screen
+  flutter_native_splash: ^2.4.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -131,10 +142,40 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/logos/mindmate_logo.png"
+  image_path: "assets/images/logos/app_icon.png"
   # Optional: Remove old launcher icon
   remove_alpha_ios: true
   
   # Adaptive icon for Android (API 26+)
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/logos/mindmate_logo.png"
+  adaptive_icon_foreground: "assets/images/logos/app_icon.png"
+
+# Native Splash Screen Configuration
+flutter_native_splash:
+  # Background color with gradient-like effect using the app's primary color
+  color: "#6D83F2"
+  color_dark: "#6D83F2"
+  
+  # No logo/image on splash screen - clean background only
+  # image: removed
+  # image_dark: removed
+  
+  # Android 12+ specific settings
+  android_12:
+    # No image for Android 12+, just solid color
+    icon_background_color: "#6D83F2"
+    icon_background_color_dark: "#6D83F2"
+  
+  # Web settings
+  web: false
+  
+  # Platform specific settings
+  android: true
+  ios: true
+  
+  # Fullscreen mode
+  fullscreen: true
+  
+  # Info.plist settings for iOS
+  info_plist_files:
+    - 'ios/Runner/Info.plist'

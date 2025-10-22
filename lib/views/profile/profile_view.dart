@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/community_viewmodel.dart';
 import '../../viewmodels/navigation_viewmodel.dart';
+import '../../widgets/loading_animation.dart';
 import '../settings_view.dart';
 import '../../services/sos_service.dart';
 import '../community/widgets/post_card.dart';
@@ -156,31 +156,10 @@ class ProfileView extends StatelessWidget {
           ],
         ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Loading profile...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
+          child: LoadingAnimation(
+            size: 120,
+            color: Colors.white,
+            message: 'Loading profile...',
           ),
         ),
       ),

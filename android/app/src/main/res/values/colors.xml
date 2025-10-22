@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="splash_background">#6D83F2</color>
+    <color name="splash_gradient_start">#6D83F2</color>
+    <color name="splash_gradient_end">#00C6FF</color>
 </resources>
