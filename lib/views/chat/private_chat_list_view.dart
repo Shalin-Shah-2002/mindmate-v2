@@ -36,10 +36,7 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
       appBar: AppBar(
         title: const Text(
           'Messages',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -63,7 +60,7 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
             icon: const Icon(Icons.search),
             tooltip: 'Search conversations',
           ),
-          
+
           // Unread count badge
           StreamBuilder<int>(
             stream: PrivateChatService.getTotalUnreadCount(),
@@ -169,7 +166,9 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -193,7 +192,9 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
                 height: 1.5,
               ),
             ),
@@ -203,12 +204,17 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
                 elevation: 8,
-                shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                shadowColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.3),
               ),
               icon: const Icon(Icons.add),
               label: const Text(
@@ -242,7 +248,9 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -266,7 +274,9 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
                 height: 1.5,
               ),
             ),
@@ -276,7 +286,10 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -304,7 +317,9 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
             'Loading your conversations...',
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -349,11 +364,13 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
                 height: 4,
                 margin: const EdgeInsets.only(top: 12, bottom: 20),
                 decoration: BoxDecoration(
-                  color: Theme.of(Get.context!).colorScheme.onSurface.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    Get.context!,
+                  ).colorScheme.onSurface.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              
+
               ListTile(
                 leading: Icon(
                   Icons.mark_chat_read,
@@ -365,7 +382,7 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
                   PrivateChatService.markMessagesAsRead(conversation.id);
                 },
               ),
-              
+
               ListTile(
                 leading: Icon(
                   Icons.delete_outline,
@@ -382,7 +399,7 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
                   _confirmDeleteConversation(conversation);
                 },
               ),
-              
+
               const SizedBox(height: 20),
             ],
           ),
@@ -399,10 +416,7 @@ class _PrivateChatListViewState extends State<PrivateChatListView> {
           'Are you sure you want to delete this conversation? This action cannot be undone.',
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Get.back();
@@ -475,7 +489,9 @@ class _ConversationTile extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: hasUnread
-                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.2)
                     : Colors.black.withValues(alpha: 0.05),
                 blurRadius: hasUnread ? 8 : 4,
                 offset: const Offset(0, 2),
@@ -496,7 +512,9 @@ class _ConversationTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: hasUnread
                       ? Border.all(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.3),
                           width: 1.5,
                         )
                       : null,
@@ -522,10 +540,9 @@ class _ConversationTile extends StatelessWidget {
                               ),
                               child: CircleAvatar(
                                 radius: 28,
-                                backgroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.1),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.1),
                                 backgroundImage: otherUser.photoUrl.isNotEmpty
                                     ? NetworkImage(otherUser.photoUrl)
                                     : null,
@@ -535,7 +552,9 @@ class _ConversationTile extends StatelessWidget {
                                             ? otherUser.name[0].toUpperCase()
                                             : '?',
                                         style: TextStyle(
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -555,7 +574,9 @@ class _ConversationTile extends StatelessWidget {
                                   color: Theme.of(context).colorScheme.error,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Theme.of(context).colorScheme.surface,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.surface,
                                     width: 2,
                                   ),
                                 ),
@@ -563,9 +584,9 @@ class _ConversationTile extends StatelessWidget {
                             ),
                         ],
                       ),
-                      
+
                       const SizedBox(width: 16),
-                      
+
                       // Content
                       Expanded(
                         child: Column(
@@ -577,9 +598,13 @@ class _ConversationTile extends StatelessWidget {
                                   child: Text(
                                     otherUser.name,
                                     style: TextStyle(
-                                      fontWeight: hasUnread ? FontWeight.bold : FontWeight.w600,
+                                      fontWeight: hasUnread
+                                          ? FontWeight.bold
+                                          : FontWeight.w600,
                                       fontSize: 17,
-                                      color: Theme.of(context).colorScheme.onSurface,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -591,10 +616,12 @@ class _ConversationTile extends StatelessWidget {
                                     color: hasUnread
                                         ? Theme.of(context).colorScheme.primary
                                         : Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withValues(alpha: 0.6),
-                                    fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.6),
+                                    fontWeight: hasUnread
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
                                   ),
                                 ),
                               ],
@@ -610,12 +637,16 @@ class _ConversationTile extends StatelessWidget {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: hasUnread
-                                                ? Theme.of(context).colorScheme.onSurface
+                                                ? Theme.of(
+                                                    context,
+                                                  ).colorScheme.onSurface
                                                 : Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.7),
-                                            fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withValues(alpha: 0.7),
+                                            fontWeight: hasUnread
+                                                ? FontWeight.w500
+                                                : FontWeight.normal,
                                             fontSize: 15,
                                             height: 1.3,
                                           ),
@@ -640,7 +671,9 @@ class _ConversationTile extends StatelessWidget {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.error,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: [
                                         BoxShadow(
@@ -653,9 +686,13 @@ class _ConversationTile extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                    constraints: const BoxConstraints(minWidth: 24),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                    ),
                                     child: Text(
-                                      unreadCount > 99 ? '99+' : unreadCount.toString(),
+                                      unreadCount > 99
+                                          ? '99+'
+                                          : unreadCount.toString(),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         color: Colors.white,

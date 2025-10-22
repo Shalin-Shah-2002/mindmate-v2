@@ -401,10 +401,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   children: [
                     CircleAvatar(
                       radius: 20,
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.1),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       backgroundImage: otherUser?.photoUrl.isNotEmpty == true
                           ? NetworkImage(otherUser!.photoUrl)
                           : null,
@@ -531,7 +530,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   ? _buildEmptyMessages(context)
                   : Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surface.withValues(alpha: 0.3),
                       ),
                       child: ListView.builder(
                         controller: _scrollController,
@@ -540,16 +541,20 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                         itemCount: messages.length,
                         itemBuilder: (context, index) {
                           final message = messages[index];
-                          final isMe = message.senderId == _authController.userModel?.id;
+                          final isMe =
+                              message.senderId == _authController.userModel?.id;
                           final showDateHeader = _shouldShowDateHeader(index);
                           final showAvatar = _shouldShowAvatar(index);
 
                           return AnimatedContainer(
-                            duration: Duration(milliseconds: 300 + (index * 50)),
+                            duration: Duration(
+                              milliseconds: 300 + (index * 50),
+                            ),
                             curve: Curves.easeOutCubic,
                             child: Column(
                               children: [
-                                if (showDateHeader) _buildDateHeader(message.timestamp),
+                                if (showDateHeader)
+                                  _buildDateHeader(message.timestamp),
                                 _buildMessageBubble(message, isMe, showAvatar),
                               ],
                             ),
@@ -581,7 +586,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -605,7 +612,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
                 height: 1.5,
               ),
             ),
@@ -629,7 +638,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
             'Loading conversation...',
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -669,15 +680,18 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
 
   bool _shouldShowAvatar(int index) {
     if (index == 0) return true; // Always show for most recent message
-    
+
     final currentMessage = messages[index];
     final previousMessage = messages[index - 1];
-    
+
     // Show avatar if sender changed or if there's a time gap
     if (currentMessage.senderId != previousMessage.senderId) return true;
-    
-    final timeDiff = previousMessage.timestamp.difference(currentMessage.timestamp);
-    return timeDiff.inMinutes > 5; // Show avatar if messages are more than 5 minutes apart
+
+    final timeDiff = previousMessage.timestamp.difference(
+      currentMessage.timestamp,
+    );
+    return timeDiff.inMinutes >
+        5; // Show avatar if messages are more than 5 minutes apart
   }
 
   Widget _buildDateHeader(DateTime timestamp) {
@@ -720,7 +734,11 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
     );
   }
 
-  Widget _buildMessageBubble(DirectMessage message, bool isMe, bool showAvatar) {
+  Widget _buildMessageBubble(
+    DirectMessage message,
+    bool isMe,
+    bool showAvatar,
+  ) {
     return Container(
       margin: EdgeInsets.fromLTRB(
         isMe ? 48 : 16,
@@ -729,19 +747,25 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
         showAvatar ? 8 : 2,
       ),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe && showAvatar) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.1),
+              backgroundColor: Theme.of(
+                Get.context!,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               backgroundImage: otherUser?.photoUrl.isNotEmpty == true
                   ? NetworkImage(otherUser!.photoUrl)
                   : null,
               child: otherUser?.photoUrl.isEmpty == true
                   ? Text(
-                      otherUser?.name.isNotEmpty == true ? otherUser!.name[0].toUpperCase() : '?',
+                      otherUser?.name.isNotEmpty == true
+                          ? otherUser!.name[0].toUpperCase()
+                          : '?',
                       style: TextStyle(
                         color: Theme.of(Get.context!).colorScheme.primary,
                         fontSize: 14,
@@ -754,18 +778,23 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
           ] else if (!isMe) ...[
             const SizedBox(width: 40), // Space for avatar
           ],
-          
+
           Flexible(
             child: GestureDetector(
               onLongPress: () => _showMessageOptions(message),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   gradient: isMe
                       ? LinearGradient(
                           colors: [
                             Theme.of(Get.context!).colorScheme.primary,
-                            Theme.of(Get.context!).colorScheme.primary.withValues(alpha: 0.8),
+                            Theme.of(
+                              Get.context!,
+                            ).colorScheme.primary.withValues(alpha: 0.8),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -773,13 +802,19 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                       : null,
                   color: isMe
                       ? null
-                      : Theme.of(Get.context!).colorScheme.surfaceContainerHighest,
+                      : Theme.of(
+                          Get.context!,
+                        ).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(20).copyWith(
                     bottomLeft: isMe
                         ? const Radius.circular(20)
-                        : (showAvatar ? const Radius.circular(4) : const Radius.circular(20)),
+                        : (showAvatar
+                              ? const Radius.circular(4)
+                              : const Radius.circular(20)),
                     bottomRight: isMe
-                        ? (showAvatar ? const Radius.circular(4) : const Radius.circular(20))
+                        ? (showAvatar
+                              ? const Radius.circular(4)
+                              : const Radius.circular(20))
                         : const Radius.circular(20),
                   ),
                   boxShadow: [
@@ -798,7 +833,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                       style: TextStyle(
                         color: isMe
                             ? Colors.white
-                            : Theme.of(Get.context!).colorScheme.onSurfaceVariant,
+                            : Theme.of(
+                                Get.context!,
+                              ).colorScheme.onSurfaceVariant,
                         fontSize: 16,
                         height: 1.4,
                       ),
@@ -812,7 +849,10 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                           style: TextStyle(
                             color: isMe
                                 ? Colors.white.withValues(alpha: 0.8)
-                                : Theme.of(Get.context!).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                : Theme.of(Get.context!)
+                                      .colorScheme
+                                      .onSurfaceVariant
+                                      .withValues(alpha: 0.7),
                             fontSize: 12,
                           ),
                         ),
@@ -859,11 +899,13 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                 height: 4,
                 margin: const EdgeInsets.only(top: 12, bottom: 20),
                 decoration: BoxDecoration(
-                  color: Theme.of(Get.context!).colorScheme.onSurface.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    Get.context!,
+                  ).colorScheme.onSurface.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              
+
               ListTile(
                 leading: const Icon(Icons.copy),
                 title: const Text('Copy Message'),
@@ -878,7 +920,7 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   );
                 },
               ),
-              
+
               if (message.senderId == _authController.userModel?.id) ...[
                 ListTile(
                   leading: const Icon(Icons.edit),
@@ -889,12 +931,14 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                     Get.snackbar(
                       'Coming Soon',
                       'Edit message functionality will be available soon',
-                      backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+                      backgroundColor: Theme.of(
+                        Get.context!,
+                      ).colorScheme.primary,
                       colorText: Colors.white,
                     );
                   },
                 ),
-                
+
                 ListTile(
                   leading: Icon(
                     Icons.delete,
@@ -912,7 +956,7 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   },
                 ),
               ],
-              
+
               const SizedBox(height: 20),
             ],
           ),
@@ -927,10 +971,7 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
         title: const Text('Delete Message'),
         content: const Text('Are you sure you want to delete this message?'),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               Get.back();
@@ -972,7 +1013,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
             // Attachment button
             Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
@@ -992,9 +1035,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                 tooltip: 'Attach file',
               ),
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // Text input
             Expanded(
               child: Container(
@@ -1002,7 +1045,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.2),
                   ),
                 ),
                 child: TextField(
@@ -1016,7 +1061,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   decoration: InputDecoration(
                     hintText: 'Type a message...',
                     hintStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
@@ -1029,13 +1076,17 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                         Get.snackbar(
                           'Coming Soon',
                           'Emoji picker will be available soon',
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                           colorText: Colors.white,
                         );
                       },
                       icon: Icon(
                         Icons.emoji_emotions_outlined,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                       tooltip: 'Add emoji',
                     ),
@@ -1046,9 +1097,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                 ),
               ),
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // Send button
             Obx(
               () => AnimatedContainer(
@@ -1057,7 +1108,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                      Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -1065,7 +1118,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -1081,7 +1136,9 @@ class _PrivateChatRoomViewState extends State<PrivateChatRoomView> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : Icon(

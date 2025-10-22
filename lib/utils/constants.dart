@@ -8,7 +8,7 @@ class StringUtils {
     if (userId.isEmpty) return 'Unknown User';
     return userId.length >= 8 ? userId.substring(0, 8) : userId;
   }
-  
+
   /// Formats userId with "User " prefix for display
   static String formatUserDisplayName(String userId) {
     return 'User ${formatUserId(userId)}';
